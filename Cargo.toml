@@ -1,0 +1,11 @@
+[package]
+name = "leadV3"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nalgebra = "*"
+# rand = "*"
+# rand_pcg = "0.9.0"
+# exr = "1.73"
+image = "0.25"
