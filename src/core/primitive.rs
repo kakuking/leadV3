@@ -21,6 +21,7 @@ impl Primitive {
                 match g.intersect(r, isect) {
                     true => {
                         isect.primitive = Some(Primitive::Geometric(g.clone()));
+                        isect.shape = Some(g.shape.clone());
                         true
                     }
                     false => false

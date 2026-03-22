@@ -1,6 +1,7 @@
-use std::{sync::Arc};
+use std::io::Write;
+use std::{fs::File, sync::Arc};
 
-use crate::{core::{INFINITY, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionT, medium::MediumInterface, primitive::{GeometricPrimitive, Primitive}, scene::Scene, shape::Shape, translation}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Registry}, shape::{Sphere, bounding_volume_heirarchy::{BVHAccel, SplitMethod}}};
+use crate::{core::{INFINITY, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionT, medium::MediumInterface, primitive::{GeometricPrimitive, Primitive}, scene::Scene, shape::Shape, translation}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Registry}, shape::{Sphere, bounding_volume_heirarchy::{BVHAccel, SplitMethod}, triangle_mesh::TriangleMesh}};
 
 pub mod core;
 
@@ -218,13 +219,6 @@ fn load_scene_and_test(registry: &Registry) {
 
     println!("Ray: {}\n\n", ray.to_string());
 
-    println!("Individual shape intersection testing - ");
-    for shape in shapes {
-        println!("Shape: {}", shape.to_string());
-        let its = shape.intersect_p(&ray, None);
-        println!("Intersects?: {}\n", its);
-    }
-
     println!("BVH accel intersection testing - ");
     let mut isect = SurfaceInteraction::new();
     if accel.intersect(&ray, &mut isect) {
@@ -235,14 +229,110 @@ fn load_scene_and_test(registry: &Registry) {
     }
 }
 
+fn load_scene_and_render_hit_ppm(registry: &Registry) {
+    let scene = match loader::parse_xml("sample_scene.xml", registry) {
+        Some(s) => s,
+        _ => panic!("No scene found!"),
+    };
+
+    let shapes = &scene.shapes;
+    let mut accel = BVHAccel::init(32, SplitMethod::SAH);
+
+    let mi = MediumInterface::new();
+    for shape in shapes {
+        let gp = GeometricPrimitive::init(shape.clone(), None, None, mi.clone());
+        accel.add_primitive(Arc::new(Primitive::Geometric(Arc::new(gp))));
+    }
+
+    accel.build();
+
+    let width: usize = 1024;
+    let height: usize = 1024;
+
+    let eye = Point3::new(10.0, 10.0, 10.0);
+    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let up = Vector3::new(0.0, 1.0, 0.0);
+
+    // Simple pinhole camera basis
+    let forward = (look_at - eye).normalize();
+    let right = forward.cross(&up).normalize();
+    let true_up = right.cross(&forward).normalize();
+
+    // 1:1 aspect ratio, use a simple 45 degree vertical FOV
+    let fov_y_deg: f32 = 45.0;
+    let fov_y = fov_y_deg.to_radians();
+    let half_height = (fov_y * 0.5).tan();
+    let half_width = half_height; // aspect ratio = 1
+
+    let mut pixels: Vec<u8> = vec![255; width * height * 3];
+
+    for y in 0..height {
+        for x in 0..width {
+            // NDC in [-1, 1], sample pixel center
+            let u = ((x as f32 + 0.5) / width as f32) * 2.0 - 1.0;
+            let v = 1.0 - ((y as f32 + 0.5) / height as f32) * 2.0;
+
+            let dir = (forward
+                + right * (u * half_width)
+                + true_up * (v * half_height))
+                .normalize();
+
+            let ray = Ray::init(&eye, &dir, 1.0e30, 0.0, None, None);
+
+            let mut isect = SurfaceInteraction::new();
+            let hit = accel.intersect(&ray, &mut isect);
+
+            let idx = (y * width + x) * 3;
+            if hit {
+                // black
+                pixels[idx] = 0;
+                pixels[idx + 1] = 0;
+                pixels[idx + 2] = 0;
+            } else {
+                // white
+                pixels[idx] = 255;
+                pixels[idx + 1] = 255;
+                pixels[idx + 2] = 255;
+            }
+        }
+    }
+
+    let mut file = File::create("hit_test.ppm").expect("Failed to create output PPM");
+    writeln!(file, "P3").unwrap();
+    writeln!(file, "{} {}", width, height).unwrap();
+    writeln!(file, "255").unwrap();
+
+    for y in 0..height {
+        for x in 0..width {
+            let idx = (y * width + x) * 3;
+            writeln!(
+                file,
+                "{} {} {}",
+                pixels[idx],
+                pixels[idx + 1],
+                pixels[idx + 2]
+            )
+            .unwrap();
+        }
+    }
+
+    println!("Wrote hit_test.ppm");
+}
+
 fn main() {
     let mut registry = Registry::new();
     registry.register_shape(
         "sphere".to_string(),
-        Box::new(|params| Shape::Sphere(Sphere::create_from_parameters(params))),
+        Box::new(|params| vec![Shape::Sphere(Sphere::create_from_parameters(params))]),
+    );
+
+    registry.register_shape(
+        "mesh".to_string(),
+        Box::new(|params| TriangleMesh::create_from_parameters(params))
     );
 
     // load_scene_and_test(&registry);
+    load_scene_and_render_hit_ppm(&registry);
 
-    benchmark_bruteforce_vs_bvh(1000, 10, 10);
+    // benchmark_bruteforce_vs_bvh(1000, 10, 10);
 }

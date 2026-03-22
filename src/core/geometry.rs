@@ -617,6 +617,14 @@ pub fn face_forward(n: &Normal3, v: &Vector3) -> Normal3 {
     }
 }
 
+pub fn permute_v(v: &Vector3, x: usize, y: usize, z: usize) -> Vector3 {
+    Vector3::new(v[x], v[y], v[z])
+}
+
+pub fn permute_p(p: &Point3, x: usize, y: usize, z: usize) -> Point3 {
+    Point3::new(p[x], p[y], p[z])
+}
+
 pub fn rotate_angle_axis(aa: AngleAxis) -> Transform {
     use nalgebra::{Vector3, Rotation3, Unit, Projective3};
 

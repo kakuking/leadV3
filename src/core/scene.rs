@@ -13,7 +13,9 @@ impl Scene {
         }
     }
 
-    pub fn add_shape(&mut self, shape: Shape) {
-        self.shapes.push(Arc::new(shape));
+    pub fn add_shapes(&mut self, shapes: Vec<Shape>) {
+        for shape in shapes {
+            self.shapes.push(Arc::new(shape));
+        }
     }
 }

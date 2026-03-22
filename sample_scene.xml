@@ -1,10 +1,9 @@
 <scene>
-    <shape type="sphere">
+    <!-- <shape type="sphere">
         <float name="radius" value="1.0"/>
         <vector3 name="translate" value="0.0, 0.0, 0.0"/>
-    </shape>
-    <shape type="sphere">
-        <float name="radius" value="1.0"/>
-        <vector3 name="translate" value="3.0, 0.0, 0.0"/>
+    </shape> -->
+    <shape type="mesh">
+        <string name="filename" value="monkey.obj"/>
     </shape>
 </scene>

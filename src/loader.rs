@@ -235,7 +235,7 @@ pub trait Manufacturable {
     fn create_from_parameters(param: Parameters) -> Self;
 }
 
-pub type FactoryFn<T> = Box<dyn Fn(Parameters) -> T>;
+pub type FactoryFn<T> = Box<dyn Fn(Parameters) -> Vec<T>>;
 
 pub struct Registry {
     pub shape_factories: HashMap<String, FactoryFn<Shape>>,
@@ -253,7 +253,7 @@ impl Registry {
         self.shape_factories.insert(t, function);
     }
 
-    fn create_shape(&self, t: String, parameters: Parameters) -> Shape {
+    fn create_shape(&self, t: String, parameters: Parameters) -> Vec<Shape> {
         match self.shape_factories.get(&t) {
             Some(s) => s(parameters),
             _ => panic!("NO SHAPE FOUND OF TYPE {}", t),
@@ -268,7 +268,7 @@ impl Registry {
         parameters: Parameters,
     ) {
         match object.as_str() {
-            "shape" => scene.add_shape(self.create_shape(object_type.to_string(), parameters)),
+            "shape" => scene.add_shapes(self.create_shape(object_type.to_string(), parameters)),
             _ => eprintln!("No object found with name {}", object),
         }
     }

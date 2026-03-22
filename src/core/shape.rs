@@ -1,40 +1,46 @@
-use crate::{core::{Bounds3, Point2, Printable, Ray, Transform, Vector3, apply_transform_to_bounds, interaction::{Interaction, InteractionT}, transform_swaps_handedness}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
+use crate::{core::{Bounds3, Point2, Printable, Ray, Transform, Vector3, apply_transform_to_bounds, interaction::{Interaction, InteractionT}, transform_swaps_handedness}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable, shape::triangle_mesh::Triangle};
 
 use crate::shape::{Sphere};
 
 #[derive(Debug)]
 pub enum Shape {
-    Sphere(Sphere)
+    Sphere(Sphere),
+    Triangle(Triangle)
 }
 
 impl Shape {
     pub fn get_object_to_world(&self) -> &Transform {
         match self {
-            Self::Sphere(s) => s.get_object_to_world()
+            Self::Sphere(s) => s.get_object_to_world(),
+            Self::Triangle(s) => s.get_object_to_world(),
         }
     }
 
     pub fn get_world_to_object(&self) -> &Transform {
         match self {
-            Self::Sphere(s) => s.get_world_to_object()
+            Self::Sphere(s) => s.get_world_to_object(),
+            Self::Triangle(s) => s.get_world_to_object()
         }
     }
 
     pub fn get_reverse_orientation(&self) -> bool {
         match self {
-            Self::Sphere(s) => s.get_reverse_orientation()
+            Self::Sphere(s) => s.get_reverse_orientation(),
+            Self::Triangle(s) => s.get_reverse_orientation()
         }
     }
 
     pub fn get_transform_swaps_handedness(&self) -> bool {
         match self {
-            Self::Sphere(s) => s.get_transform_swaps_handedness()
+            Self::Sphere(s) => s.get_transform_swaps_handedness(),
+            Self::Triangle(s) => s.get_transform_swaps_handedness()
         }
     }
 
     pub fn object_bounds(&self) -> Bounds3 {
         match self {
-            Self::Sphere(s) => s.object_bounds()
+            Self::Sphere(s) => s.object_bounds(),
+            Self::Triangle(s) => s.object_bounds()
         }
     }
 
@@ -44,7 +50,8 @@ impl Shape {
 
     pub fn intersect(&self, ray: &Ray, t_hit: &mut f32, isect: &mut SurfaceInteraction, test_alpha_texture: Option<bool>) -> bool {
         match self {
-            Self::Sphere(s) => s.intersect(ray, t_hit, isect, test_alpha_texture)
+            Self::Sphere(s) => s.intersect(ray, t_hit, isect, test_alpha_texture),
+            Self::Triangle(s) => s.intersect(ray, t_hit, isect, test_alpha_texture)
         }
     }
 
@@ -57,7 +64,8 @@ impl Shape {
 
     pub fn area(&self) -> f32 {
         match self {
-            Self::Sphere(s) => s.area()
+            Self::Sphere(s) => s.area(),
+            Self::Triangle(s) => s.area()
         }
     }
 
@@ -65,7 +73,8 @@ impl Shape {
 
     pub fn sample(&self, u: &Point2) -> Interaction {
         match self {
-            Self::Sphere(s) => s.sample(u)
+            Self::Sphere(s) => s.sample(u),
+            Self::Triangle(s) => s.sample(u)
         }
     }
 
@@ -75,7 +84,8 @@ impl Shape {
 
     pub fn pdf_interaction(&self, re: &Interaction, wi: &Vector3) -> f32 {
         match self {
-            Self::Sphere(s) => s.pdf_interaction(re, wi)
+            Self::Sphere(s) => s.pdf_interaction(re, wi),
+            Self::Triangle(s) => s.pdf_interaction(re, wi)
         }
     }
 }
@@ -83,7 +93,8 @@ impl Shape {
 impl Printable for Shape {
     fn to_string(&self) -> String {
         match self {
-            Shape::Sphere(s) => s.to_string()
+            Shape::Sphere(s) => s.to_string(),
+            Shape::Triangle(s) => s.to_string(),
         }
     }
 }
@@ -117,5 +128,7 @@ pub trait ShapeT: Manufacturable + Printable {
         self.sample(u)
     }
 
-    fn pdf_interaction(&self, re: &Interaction, wi: &Vector3) -> f32;
+    fn pdf_interaction(&self, re: &Interaction, wi: &Vector3) -> f32 {
+        self.pdf()
+    }
 }

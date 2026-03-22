@@ -11,4 +11,6 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 - [ ] Add meshes
 - [x] Added BVH Acceleration Structure
 - [x] Added benchmark between brute force and BVH
+- [x] Added Triangle Meshes (including loading)
+- [ ] Added a test scene  of loading and rendering an image
 - [ ] Fix Scene (mess rn)
