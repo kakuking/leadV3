@@ -242,7 +242,7 @@ impl ShapeT for Triangle {
     fn get_reverse_orientation(&self) -> bool { panic!("Dont call get_reverse_orientation on a triangle"); }
 
     fn object_bounds(&self) -> Bounds3 {
-        apply_transform_to_bounds(&self.world_bounds(), &self.mesh.object_to_world)
+        self.world_bounds()
     }
 
     fn world_bounds(&self) -> Bounds3 {

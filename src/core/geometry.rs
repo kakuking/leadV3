@@ -12,7 +12,7 @@ pub type Normal3 = nalgebra::Vector3<f32>;
 pub type AngleAxis = nalgebra::Vector4<f32>;
 pub type Transform = nalgebra::Projective3<f32>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ray {
     pub o: Point3,
     pub d: Vector3,
