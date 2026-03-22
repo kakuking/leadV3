@@ -32,11 +32,11 @@ pub struct SurfaceInteraction {
     pub dndu: Normal3,
     pub dndv: Normal3,
 
-    pub shape: Arc<Shape>,
+    pub shape: Option<Arc<Shape>>,
     pub shading: Shading,
 
-    pub bsdf: Arc<BSDF>,
-    pub bssrdf: Arc<BSSRDF>,
+    pub bsdf: Option<Arc<BSDF>>,
+    pub bssrdf: Option<Arc<BSSRDF>>,
 
     pub dpdx: Cell<Vector3>,
     pub dpdy: Cell<Vector3>,
@@ -57,10 +57,10 @@ impl InteractionT for SurfaceInteraction {
             dpdv: Vector3::zeros(),
             dndu: Normal3::zeros(),
             dndv: Normal3::zeros(),
-            shape: Arc::new(Shape::new()),
+            shape: None,
             shading: Shading::new(),
-            bsdf: Arc::new(BSDF::new()),
-            bssrdf: Arc::new(BSSRDF::new()),
+            bsdf: None,
+            bssrdf: None,
             dpdx: Cell::new(Vector3::zeros()),
             dpdy: Cell::new(Vector3::zeros()),
             dudx: Cell::new(0.0),
@@ -79,10 +79,10 @@ impl InteractionT for SurfaceInteraction {
             dpdv: Vector3::zeros(),
             dndu: Normal3::zeros(),
             dndv: Normal3::zeros(),
-            shape: Arc::new(Shape::new()),
+            shape: None,
             shading: Shading::new(),
-            bsdf: Arc::new(BSDF::new()),
-            bssrdf: Arc::new(BSSRDF::new()),
+            bsdf: None,
+            bssrdf: None,
             dpdx: Cell::new(Vector3::zeros()),
             dpdy: Cell::new(Vector3::zeros()),
             dudx: Cell::new(0.0),
@@ -101,10 +101,10 @@ impl InteractionT for SurfaceInteraction {
             dpdv: Vector3::zeros(),
             dndu: Normal3::zeros(),
             dndv: Normal3::zeros(),
-            shape: Arc::new(Shape::new()),
+            shape: None,
             shading: Shading::new(),
-            bsdf: Arc::new(BSDF::new()),
-            bssrdf: Arc::new(BSSRDF::new()),
+            bsdf: None,
+            bssrdf: None,
             dpdx: Cell::new(Vector3::zeros()),
             dpdy: Cell::new(Vector3::zeros()),
             dudx: Cell::new(0.0),
@@ -122,10 +122,10 @@ impl InteractionT for SurfaceInteraction {
             dpdv: Vector3::zeros(),
             dndu: Normal3::zeros(),
             dndv: Normal3::zeros(),
-            shape: Arc::new(Shape::new()),
+            shape: None,
             shading: Shading::new(),
-            bsdf: Arc::new(BSDF::new()),
-            bssrdf: Arc::new(BSSRDF::new()),
+            bsdf: None,
+            bssrdf: None,
             dpdx: Cell::new(Vector3::zeros()),
             dpdy: Cell::new(Vector3::zeros()),
             dudx: Cell::new(0.0),
@@ -153,7 +153,7 @@ impl InteractionT for SurfaceInteraction {
 }
 
 impl SurfaceInteraction {
-    pub fn init(p: &Point3, p_error: &Vector3, uv: &Point2, wo: &Vector3, dpdu: &Vector3, dpdv: &Vector3, dndu: &Normal3, dndv: &Normal3, time: f32, shape: Arc<Shape>) -> Self {
+    pub fn init(p: &Point3, p_error: &Vector3, uv: &Point2, wo: &Vector3, dpdu: &Vector3, dpdv: &Vector3, dndu: &Normal3, dndv: &Normal3, time: f32, shape: Option<Arc<Shape>>) -> Self {
         let n: Normal3 = dpdu.cross(dpdv).normalize();
 
         let mut base = InteractionBase::init(p, &n, p_error, wo, time, MediumInterface::new());
@@ -166,9 +166,11 @@ impl SurfaceInteraction {
             dndv: dndv.clone(),
         };
 
-        if shape.reverse_orientation() ^ shape.transform_swaps_handedness() {
-            base.n *= -1.0;
-            shading.n *= -1.0;
+        if let Some(s) = &shape {
+            if s.get_reverse_orientation() ^ s.get_transform_swaps_handedness() {
+                base.n *= -1.0;
+                shading.n *= -1.0;
+            }
         }
 
         Self {
@@ -181,8 +183,8 @@ impl SurfaceInteraction {
             dndv: *dndv,
             shape: shape,
             shading,
-            bsdf: Arc::new(BSDF::new()),
-            bssrdf: Arc::new(BSSRDF::new()),
+            bsdf: None,
+            bssrdf: None,
             dpdx: Cell::new(Vector3::zeros()),
             dpdy: Cell::new(Vector3::zeros()),
             dudx: Cell::new(0.0),
@@ -195,8 +197,10 @@ impl SurfaceInteraction {
     pub fn set_shading_geometry(&mut self, dpdus: &Vector3, dpdvs: &Vector3, dndus: &Normal3, dndvs: &Vector3, orientation_is_auth: bool) {
         self.shading.n = dpdus.cross(dpdvs).normalize();
 
-        if self.shape.reverse_orientation() ^ self.shape.transform_swaps_handedness() {
-            self.base.n = face_forward(self.get_n(), &self.shading.n);
+        if let Some(s) = &self.shape {
+            if s.get_reverse_orientation() ^ s.get_transform_swaps_handedness() {
+                self.base.n = face_forward(self.get_n(), &self.shading.n);
+            }
         }
 
         if orientation_is_auth {
@@ -212,14 +216,14 @@ impl SurfaceInteraction {
     }
 
     pub fn compute_scattering_functions(&mut self, _ray: &Ray, _allow_multiple_lobs: Option<bool>, _mode: Option<TransportMode>) {
-        todo!("To be implemented");
+        todo!("surface_inter::compute_scattering");
     }
 
     pub fn compute_differentials(&self, _r: &Ray) {
-        todo!("To be implemented");
+        todo!("surface_inter::compute_diff");
     }
-
+    
     pub fn le(&self, _w: &Vector3) -> Spectrum {
-        todo!("To be implemented")
+        todo!("surface_inter::le");
     }
 }

@@ -1,4 +1,4 @@
-use crate::{core::{interaction::InteractionBase, math::*}, interaction::surface_interaction::{Shading, SurfaceInteraction}};
+use crate::{core::{Printable, interaction::InteractionBase, math::*}, interaction::surface_interaction::{Shading, SurfaceInteraction}};
 
 use std::{cell::Cell, ops::Index, sync::Arc};
 
@@ -9,6 +9,7 @@ pub type Vector2 = nalgebra::Vector2<f32>;
 pub type Point3 = nalgebra::Point3<f32>;
 pub type Point2 = nalgebra::Point2<f32>;
 pub type Normal3 = nalgebra::Vector3<f32>;
+pub type AngleAxis = nalgebra::Vector4<f32>;
 pub type Transform = nalgebra::Projective3<f32>;
 
 #[derive(Debug)]
@@ -65,6 +66,37 @@ impl Ray {
     }
 }
 
+impl Printable for Ray {
+    fn to_string(&self) -> String {
+        let differential_str = match &self.differential {
+            Some(rd) => rd.to_string(),
+            None => "None".to_string(),
+        };
+
+        let medium_str = match &self.medium {
+            Some(_) => "Some(Medium)".to_string(),
+            None => "None".to_string(),
+        };
+
+        format!(
+            "Ray [\n\
+                o: ({:.6}, {:.6}, {:.6}),\n\
+                d: ({:.6}, {:.6}, {:.6}),\n\
+                t_max: {:.6},\n\
+                time: {:.6},\n\
+                medium: {},\n\
+                differential: {}\n\
+            ]",
+            self.o.x, self.o.y, self.o.z,
+            self.d.x, self.d.y, self.d.z,
+            self.t_max,
+            self.time.get(),
+            medium_str,
+            differential_str
+        )
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct RayDifferential {
     pub rx_o: Point3,
@@ -81,6 +113,23 @@ impl RayDifferential {
             rx_d: Vector3::zeros(),
             ry_d: Vector3::zeros(),
         }
+    }
+}
+
+impl Printable for RayDifferential {
+    fn to_string(&self) -> String {
+        format!(
+            "RayDifferential [\n\
+                rx_o: ({:.6}, {:.6}, {:.6}),\n\
+                ry_o: ({:.6}, {:.6}, {:.6}),\n\
+                rx_d: ({:.6}, {:.6}, {:.6}),\n\
+                ry_d: ({:.6}, {:.6}, {:.6})\n\
+            ]",
+            self.rx_o.x, self.rx_o.y, self.rx_o.z,
+            self.ry_o.x, self.ry_o.y, self.ry_o.z,
+            self.rx_d.x, self.rx_d.y, self.rx_d.z,
+            self.ry_d.x, self.ry_d.y, self.ry_d.z,
+        )
     }
 }
 
@@ -350,12 +399,74 @@ impl Bounds3 {
         x && y && z
     }
 
-    pub fn intersect_p(&self, _r: &Ray, _hit_t0: &mut f32, _hit_t1: &mut f32) -> bool {
-        todo!("To be implement");
+    pub fn intersect_p(&self, r: &Ray, hit_t0: &mut f32, hit_t1: &mut f32) -> bool {
+        let mut t0 = 0.0f32;
+        let mut t1 = r.t_max;
+
+        for i in  0..3 {
+            let inv_ray_dir =  1.0 / r.d[i];
+
+            let  mut t_near = (self.p_min[i] - r.o[i]) * inv_ray_dir;
+            let  mut t_far = (self.p_max[i] - r.o[i]) * inv_ray_dir;
+
+            if t_near > t_far {
+                std::mem::swap(&mut t_near, &mut t_far);
+            }
+
+            t_far *= 1.0 + 2.0 * gamma(3.0);
+
+            t0 = if t_near > t0 { t_near } else { t0 };
+            t1 = if  t_far < t1 { t_far } else { t1 };
+            if t0 > t1 {
+                return false;
+            }
+        }
+
+        *hit_t0 = t0;
+        *hit_t1 = t1;
+
+        true
     }
     
-    pub fn intersect_p_with_inv_dir(&self, _r: &Ray, _inv_dir: &Vector3, _dir_is_neg: [u32; 3]) -> bool {
-        todo!("To be implement");
+    pub fn intersect_p_with_inv_dir(&self, r: &Ray, inv_dir: &Vector3, dir_is_neg: [u32; 3]) -> bool {
+        let mut t_min = (self[dir_is_neg[0] as usize].x - r.o.x) * inv_dir.x;
+        let mut t_max = (self[1 - dir_is_neg[0] as usize].x - r.o.x) * inv_dir.x;
+        let ty_min = (self[dir_is_neg[1] as usize].y - r.o.y) * inv_dir.y;
+        let mut ty_max = (self[1 - dir_is_neg[1] as usize].y - r.o.y) * inv_dir.y;
+
+        t_max *= 1.0 + 2.0 * gamma(3.0);
+        ty_max *= 1.0 + 2.0 * gamma(3.0);
+
+        if  t_min > ty_max || ty_min > t_max {
+            return false;
+        }
+
+        if ty_min > t_min {
+            t_min = ty_min;
+        }
+
+        if ty_max < t_max {
+            t_max = ty_max;
+        }
+
+        let tz_min = (self[dir_is_neg[2] as usize].z - r.o.z) * inv_dir.z;
+        let mut tz_max = (self[1 - dir_is_neg[2] as usize].z - r.o.z) * inv_dir.z;
+
+        tz_max *= 1.0 + 2.0 * gamma(3.0);
+
+        if t_min > tz_max || tz_min > t_max {
+            return false;
+        }
+
+        if tz_min > t_min {
+            t_min = tz_min;
+        }
+
+        if tz_max < t_max {
+            t_max = tz_max;
+        }
+
+        t_min < r.t_max && t_max > 0.0
     }
 }
 
@@ -381,11 +492,6 @@ pub fn apply_transform_to_normal(n: &Vector3, t: &Transform) -> Vector3 {
 }
 
 pub fn transform_swaps_handedness(t: &Transform) -> bool {
-    let lin = t.matrix().fixed_view::<3, 3>(0, 0);
-    lin.determinant() < 0.0
-}
-
-pub fn arc_transform_swaps_handedness(t: Transform) -> bool {
     let lin = t.matrix().fixed_view::<3, 3>(0, 0);
     lin.determinant() < 0.0
 }
@@ -508,4 +614,32 @@ pub fn face_forward(n: &Normal3, v: &Vector3) -> Normal3 {
     } else {
         n + Vector3::zeros()
     }
+}
+
+pub fn rotate_angle_axis(aa: AngleAxis) -> Transform {
+    use nalgebra::{Vector3, Rotation3, Unit, Projective3};
+
+    let axis = Vector3::new(aa.x, aa.y, aa.z);
+    let angle = aa.w;
+
+    let axis_unit = Unit::new_normalize(axis);
+    let rotation = Rotation3::from_axis_angle(&axis_unit, angle);
+
+    Projective3::from_matrix_unchecked(rotation.to_homogeneous())
+}
+
+pub fn translation(t: Vector3) -> Transform {
+    use nalgebra::{Translation3, Projective3};
+
+    let translation = Translation3::new(t.x, t.y, t.z);
+
+    Projective3::from_matrix_unchecked(translation.to_homogeneous())
+}
+
+pub fn scaling(s: Vector3) -> Transform {
+    use nalgebra::{Scale3, Projective3};
+
+    let scale = Scale3::new(s.x, s.y, s.z);
+
+    Projective3::from_matrix_unchecked(scale.to_homogeneous())
 }

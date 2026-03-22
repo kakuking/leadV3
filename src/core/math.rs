@@ -10,6 +10,10 @@ pub const INV_PI: f32 = f32::consts::FRAC_1_PI;
 pub const INV_4PI: f32 = 0.25 * INV_PI;
 pub const EPSILON: f32 = 0.0001;
 
+pub  fn gamma(n: f32) -> f32 {
+    n * EPSILON / (1.0 - n * EPSILON)
+}
+
 pub fn lerp(t: f32, a: f32, b: f32) -> f32 {
     (1.0 - t) * a + t * b 
 }
@@ -54,4 +58,29 @@ pub fn offset_ray_origin(p: &Point3, p_error: &Vector3, n: &Normal3, w: &Vector3
     }
 
     po
+}
+
+pub fn quadratic(a: f32, b: f32, c: f32, t0: &mut f32, t1: &mut f32) -> bool {
+    let d2 = b * b - 4.0 * a * c;
+
+    if d2 < 0.0 {
+        return false;
+    }
+
+    let d = d2.sqrt();
+
+    let q = if b < 0.0 {
+        -0.5 * (b - d)
+    } else {
+        -0.5 * (b + d)
+    };
+
+    *t0 = q / a;
+    *t1 = c / q;
+
+    if *t0 > *t1 {
+        std::mem::swap(t0, t1);
+    }
+
+    true
 }
