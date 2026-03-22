@@ -5,6 +5,8 @@ pub mod interaction;
 pub mod bsdf;
 pub mod shape;
 pub mod scene;
+pub mod primitive;
+pub mod material;
 
 pub use math::*;
 pub use geometry::*;

@@ -182,14 +182,14 @@ impl InteractionBase {
     pub fn spawn_ray(&self, d: &Vector3) -> Ray {
         let o = offset_ray_origin(&self.p, &self.p_error, &self.n, d);
 
-        Ray::init(&o, d, INFINITY, Cell::new(self.time), self.get_medium(), None)
+        Ray::init(&o, d, INFINITY, self.time, self.get_medium(), None)
     }
 
     pub fn spawn_ray_to(&self, p2: Point3) -> Ray {
         let origin = offset_ray_origin(&self.p, &self.p_error, &self.n, &(p2 - self.p));
         let d = p2 - origin;
 
-        Ray::init(&origin, &d, 1.0 - EPSILON, Cell::new(self.time), self.get_medium(), None)
+        Ray::init(&origin, &d, 1.0 - EPSILON, self.time, self.get_medium(), None)
     }
 
     pub fn spawn_ray_to_interaction(&self, it: &InteractionBase) -> Ray {
@@ -197,7 +197,7 @@ impl InteractionBase {
         let t = offset_ray_origin(&it.p, &it.p_error, &it.n, &(o - it.p));
         let d = t - o;
 
-        Ray::init(&o, &d, 1.0-EPSILON, Cell::new(self.time), self.get_medium(), None)
+        Ray::init(&o, &d, 1.0-EPSILON, self.time, self.get_medium(), None)
     }
 
 }

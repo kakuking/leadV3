@@ -192,7 +192,7 @@ impl Parameters {
     }
 }
 
-pub fn parse_xml(filename: &str, registry: Registry) -> Option<Scene> {
+pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
     let xml = std::fs::read_to_string(filename).unwrap();
     let doc = Document::parse(&xml).unwrap();
 

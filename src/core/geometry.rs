@@ -16,8 +16,8 @@ pub type Transform = nalgebra::Projective3<f32>;
 pub struct Ray {
     pub o: Point3,
     pub d: Vector3,
-    pub t_max: f32,
-    pub time: Cell<f32>,
+    pub t_max: Cell<f32>,
+    pub time: f32,
     pub medium: Option<Arc<Medium>>,
 
     pub differential: Option<RayDifferential>    
@@ -28,19 +28,19 @@ impl Ray {
         Self {
             o: Point3::origin(),
             d: Vector3::zeros(),
-            t_max: f32::INFINITY,
-            time: Cell::new(0.0),
+            t_max: Cell::new(f32::INFINITY),
+            time: 0.0,
             medium: None,
 
             differential: None
         }
     }
 
-    pub fn init(o: &Point3, d: &Vector3, t_max: f32, time: Cell<f32>, medium: Option<Arc<Medium>>, differential: Option<RayDifferential>) -> Self {
+    pub fn init(o: &Point3, d: &Vector3, t_max: f32, time: f32, medium: Option<Arc<Medium>>, differential: Option<RayDifferential>) -> Self {
         Self {
             o: o.clone(),
             d: d.clone(),
-            t_max,
+            t_max: Cell::new(t_max),
             time,
             medium,
             differential
@@ -89,8 +89,8 @@ impl Printable for Ray {
             ]",
             self.o.x, self.o.y, self.o.z,
             self.d.x, self.d.y, self.d.z,
-            self.t_max,
-            self.time.get(),
+            self.t_max.get(),
+            self.time,
             medium_str,
             differential_str
         )
@@ -234,10 +234,10 @@ impl Index<usize> for Bounds2 {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Bounds3 {
-    p_min: Point3,
-    p_max: Point3
+    pub p_min: Point3,
+    pub p_max: Point3
 }
 
 impl Bounds3 {
@@ -311,10 +311,10 @@ impl Bounds3 {
         Point3::new(x, y, z)
     }
 
-    pub fn offset(&self, p: Point3) -> Point3 {
+    pub fn offset(&self, p: &Point3) -> Point3 {
         let mut o: Point3 = (p - self.p_min).into();
 
-        if self.p_max.x > self.p_min.y {
+        if self.p_max.x > self.p_min.x {
             o.x /= self.p_max.x - self.p_min.x;
         }
 
@@ -401,7 +401,7 @@ impl Bounds3 {
 
     pub fn intersect_p(&self, r: &Ray, hit_t0: &mut f32, hit_t1: &mut f32) -> bool {
         let mut t0 = 0.0f32;
-        let mut t1 = r.t_max;
+        let mut t1 = r.t_max.get();
 
         for i in  0..3 {
             let inv_ray_dir =  1.0 / r.d[i];
@@ -428,11 +428,11 @@ impl Bounds3 {
         true
     }
     
-    pub fn intersect_p_with_inv_dir(&self, r: &Ray, inv_dir: &Vector3, dir_is_neg: [u32; 3]) -> bool {
-        let mut t_min = (self[dir_is_neg[0] as usize].x - r.o.x) * inv_dir.x;
-        let mut t_max = (self[1 - dir_is_neg[0] as usize].x - r.o.x) * inv_dir.x;
-        let ty_min = (self[dir_is_neg[1] as usize].y - r.o.y) * inv_dir.y;
-        let mut ty_max = (self[1 - dir_is_neg[1] as usize].y - r.o.y) * inv_dir.y;
+    pub fn intersect_p_with_inv_dir(&self, r: &Ray, inv_dir: &Vector3, dir_is_neg: [usize; 3]) -> bool {
+        let mut t_min = (self[dir_is_neg[0]].x - r.o.x) * inv_dir.x;
+        let mut t_max = (self[1 - dir_is_neg[0]].x - r.o.x) * inv_dir.x;
+        let ty_min = (self[dir_is_neg[1]].y - r.o.y) * inv_dir.y;
+        let mut ty_max = (self[1 - dir_is_neg[1]].y - r.o.y) * inv_dir.y;
 
         t_max *= 1.0 + 2.0 * gamma(3.0);
         ty_max *= 1.0 + 2.0 * gamma(3.0);
@@ -449,8 +449,8 @@ impl Bounds3 {
             t_max = ty_max;
         }
 
-        let tz_min = (self[dir_is_neg[2] as usize].z - r.o.z) * inv_dir.z;
-        let mut tz_max = (self[1 - dir_is_neg[2] as usize].z - r.o.z) * inv_dir.z;
+        let tz_min = (self[dir_is_neg[2]].z - r.o.z) * inv_dir.z;
+        let mut tz_max = (self[1 - dir_is_neg[2]].z - r.o.z) * inv_dir.z;
 
         tz_max *= 1.0 + 2.0 * gamma(3.0);
 
@@ -466,7 +466,7 @@ impl Bounds3 {
             t_max = tz_max;
         }
 
-        t_min < r.t_max && t_max > 0.0
+        t_min < r.t_max.get() && t_max > 0.0
     }
 }
 
@@ -510,9 +510,9 @@ pub fn apply_transform_to_ray(r: &Ray, t: &Transform) -> Ray {
     }
 
     if r.has_differntials() {
-        Ray::init(&r_o, &r_d, r.t_max, r.time.clone(), r.medium.clone(), Some(rd))
+        Ray::init(&r_o, &r_d, r.t_max.get(), r.time.clone(), r.medium.clone(), Some(rd))
     } else {
-        Ray::init(&r_o, &r_d, r.t_max, r.time.clone(), r.medium.clone(), None)
+        Ray::init(&r_o, &r_d, r.t_max.get(), r.time.clone(), r.medium.clone(), None)
     }
 }
 
@@ -592,6 +592,7 @@ pub fn apply_transform_to_surface_interaction(si: &SurfaceInteraction, t: &Trans
         dvdx: Cell::new(si.dvdx.get()),
         dudy: Cell::new(si.dudy.get()),
         dvdy: Cell::new(si.dvdy.get()),
+        primitive: si.primitive.clone()
     };
 
     ret

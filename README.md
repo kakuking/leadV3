@@ -9,3 +9,6 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 - [x] Added Sphere
 - [x] Added XML loading
 - [ ] Add meshes
+- [x] Added BVH Acceleration Structure
+- [x] Added benchmark between brute force and BVH
+- [ ] Fix Scene (mess rn)

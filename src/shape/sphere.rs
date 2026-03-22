@@ -1,5 +1,6 @@
 use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, gamma, interaction::Interaction, quadratic, shape::ShapeT, translation}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
 
+#[derive(Debug)]
 pub struct Sphere {
     object_to_world: Transform,
     world_to_object: Transform,
@@ -68,14 +69,14 @@ impl ShapeT for Sphere {
         }
 
         // Degen case
-        if t0 > ray.t_max || t1 <= 0.0 {
+        if t0 > ray.t_max.get() || t1 <= 0.0 {
             return false;
         }
 
         let mut t_shape_hit = t0;
         if t_shape_hit <= 0.0 {
             t_shape_hit = t1;
-            if t_shape_hit > ray.t_max {
+            if t_shape_hit > ray.t_max.get() {
                 return false;
             }
         }
@@ -91,7 +92,7 @@ impl ShapeT for Sphere {
         // Check against zminmax and phimax
         if (self.z_min > -self.radius && p_hit.z < self.z_min) || (self.z_max < self.radius && p_hit.z > self.z_max) || phi > self.phi_max {
             if t_shape_hit == t1 { return false; }  // If its the second hit, return false
-            if t1 > ray.t_max { return false; }
+            if t1 > ray.t_max.get() { return false; }
             t_shape_hit = t1;
 
             p_hit = ray.at(t_shape_hit);
@@ -138,7 +139,7 @@ impl ShapeT for Sphere {
 
         let p_error = gamma(5.0) * p_hit.map(|e| e.abs()) - Point3::new(0.0, 0.0, 0.0);
 
-        *isect = SurfaceInteraction::init(&p_hit, &p_error, &Point2::new(u, v), &(-ray.d), &dpdu, &dpdv, &dndu, &dndv, ray.time.get(), None);
+        *isect = SurfaceInteraction::init(&p_hit, &p_error, &Point2::new(u, v), &(-ray.d), &dpdu, &dpdv, &dndu, &dndv, ray.time, None);
         *t_hit = t_shape_hit;
 
         true

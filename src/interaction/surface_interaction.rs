@@ -1,6 +1,6 @@
 use std::{cell::Cell, sync::Arc};
 
-use crate::core::{Normal3, Point2, Point3, Ray, Spectrum, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, shape::Shape};
+use crate::core::{Normal3, Point2, Point3, Ray, Spectrum, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::{GeometricPrimitive, Primitive}, shape::Shape};
 
 pub struct Shading {
     pub n: Normal3,
@@ -45,6 +45,8 @@ pub struct SurfaceInteraction {
     pub dvdx: Cell<f32>,
     pub dudy: Cell<f32>,
     pub dvdy: Cell<f32>,
+
+    pub primitive: Option<Primitive>,
 }
 
 impl InteractionT for SurfaceInteraction {
@@ -67,6 +69,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
+            primitive: None
         }
     }
 
@@ -89,6 +92,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
+            primitive: None
         }
     }
 
@@ -111,6 +115,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
+            primitive: None
         }
     }
     fn init_no_wo(p: &Point3, time: f32, medium_interface: MediumInterface) -> Self {
@@ -132,6 +137,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
+            primitive: None
         }
     }
 
@@ -191,6 +197,7 @@ impl SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
+            primitive: None
         }
     }
 
