@@ -7,6 +7,9 @@ pub mod shape;
 pub mod scene;
 pub mod primitive;
 pub mod material;
+pub mod camera;
+pub mod light;
+pub mod sampler;
 
 pub use math::*;
 pub use geometry::*;

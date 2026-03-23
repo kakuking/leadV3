@@ -135,8 +135,8 @@ impl Printable for RayDifferential {
 
 #[derive(PartialEq)]
 pub struct Bounds2 {
-    p_min: Point2,
-    p_max: Point2
+    pub p_min: Point2,
+    pub p_max: Point2
 }
 
 impl Bounds2 {

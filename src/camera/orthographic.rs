@@ -1,0 +1,109 @@
+use std::{cell::Cell, sync::Arc};
+
+use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Spectrum, Transform, Vector3, apply_transform_to_ray, camera::{ CameraSample, CameraT, Film, ProjectedCameraBase}, interaction::Interaction, lerp, light::VisibilityTester, medium::Medium, sampler::concentric_sample_disk, scaling, translation}, loader::Manufacturable};
+
+pub struct OrthographicCamera {
+    pub base: ProjectedCameraBase,
+
+    pub dx_camera: Vector3,
+    pub dy_camera: Vector3
+}
+
+impl OrthographicCamera {
+    pub fn init(
+        camera_to_world: Transform,
+        screen_window: Bounds2,
+        shutter_open: f32,
+        shutter_close: f32,
+        lens_radius: f32,
+        focal_distance: f32,
+        film: Arc<Film>,
+        medium: Option<Arc<Medium>>
+    ) -> Self {
+        let base = ProjectedCameraBase::init(camera_to_world, Self::create_orthographic(0.0, 1.0), screen_window, shutter_open, shutter_close, lens_radius, focal_distance, film, medium);
+
+        let dx_camera = base.raster_to_camera.transform_vector(&Vector3::new(1.0, 0.0, 0.0));
+        let dy_camera = base.raster_to_camera.transform_vector(&Vector3::new(0.0, 1.0, 0.0));
+
+        Self {
+            base,
+            
+            dx_camera,
+            dy_camera
+        }
+    }
+
+    fn create_orthographic(z_near: f32, z_far: f32) -> Transform {
+        scaling(Vector3::new(
+            1.0, 
+            1.0, 
+            1.0 / (z_far - z_near)
+        )) * translation(Vector3::new(
+            0.0, 
+            0.0, 
+            -z_near
+        ))
+    }
+}
+
+impl CameraT for OrthographicCamera {
+    fn get_medium(&self) -> Option<Arc<Medium>> { self.base.medium.clone() }
+    fn get_shutter_open(&self) -> f32 { self.base.shutter_open }
+    fn get_shutter_close(&self) -> f32 { self.base.shutter_close }
+    fn get_film(&self) -> Arc<Film> { self.base.film.clone() }
+    fn get_camera_to_world(&self) -> Transform { self.base.camera_to_world }
+    
+    fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32 {
+        let p_film = Point3::new(sample.p_film.x, sample.p_film.y, 0.0);
+        let p_camera = self.base.raster_to_camera.transform_point(&p_film);
+
+        *ray = Ray::init(&p_camera, &Vector3::new(0.0, 0.0, 1.0), INFINITY, 0.0, None, None);
+
+
+        if self.base.lens_radius > 0.0 {
+            let p_lens = self.base.lens_radius * concentric_sample_disk(&sample.p_lens);
+
+            let ft = self.base.focal_distance / ray.d.z;
+            let p_focus = ray.at(ft);
+
+            ray.o = Point3::new(p_lens.x, p_lens.y, 0.0);
+            ray.d = (p_focus - ray.o).normalize();
+        }
+
+        ray.time = lerp(sample.time, self.base.shutter_open, self.base.shutter_close);
+        ray.medium = self.base.medium.clone();
+
+        *ray = apply_transform_to_ray(&ray, &self.base.camera_to_world);
+
+        1.0
+    }
+
+    fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum {
+        todo!("orthographic::we")
+    }
+    fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
+        todo!("orthographic::pdf_we")
+    }
+    fn sample_wi(&self, reference: &Interaction, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum {
+        todo!("orthographic::sample_wi")
+    }
+}
+
+impl Printable for OrthographicCamera {
+    fn to_string(&self) -> String {
+        format!(
+            "Orthographi[\n
+            \tlens radius: {}\n
+            \tfocal distance: {}\n
+            ]",
+            self.base.lens_radius,
+            self.base.focal_distance
+        )
+    }
+}
+
+impl Manufacturable for OrthographicCamera {
+    fn create_from_parameters(param: crate::loader::Parameters) -> Self {
+        todo!("orthographic::create_from_param")
+    }
+}

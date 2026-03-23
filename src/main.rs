@@ -8,6 +8,7 @@ pub mod core;
 pub mod interaction;
 pub mod shape;
 pub mod light;
+pub mod camera;
 
 pub mod loader;
 
@@ -197,57 +198,6 @@ pub fn benchmark_bruteforce_vs_bvh(
     }
 }
 
-fn load_scene_and_test_bruteforce(registry: &Registry) {
-    let scene = match loader::parse_xml("sample_scene.xml", registry) {
-        Some(s) => s,
-        _ => panic!("No scene found!"),
-    };
-
-    let ray = Ray::init(
-        &Point3::new(10.0, 10.0, 10.0),
-        &Vector3::new(-1.0, -1.0, -1.0).normalize(),
-        100.0,
-        0.0,
-        None,
-        None,
-    );
-
-    let shapes = &scene.shapes;
-    let mi = MediumInterface::new();
-
-    let mut primitives: Vec<Arc<Primitive>> = Vec::new();
-    for shape in shapes {
-        let gp = GeometricPrimitive::init(shape.clone(), None, None, mi.clone());
-        primitives.push(Arc::new(Primitive::Geometric(Arc::new(gp))));
-    }
-
-    println!("Ray: {}\n\n", ray.to_string());
-    println!("Brute force intersection testing - ");
-
-    let mut closest_t = ray.t_max.get();
-    let mut hit_anything = false;
-    let mut best_isect = SurfaceInteraction::new();
-
-    for prim in &primitives {
-        let mut ray_local = ray.clone();
-        ray_local.t_max.set(closest_t);
-
-        let mut isect = SurfaceInteraction::new();
-        if prim.intersect(&mut ray_local, &mut isect) {
-            hit_anything = true;
-            closest_t = ray_local.t_max.get();
-            best_isect = isect;
-        }
-    }
-
-    if hit_anything {
-        let prim = best_isect.primitive.unwrap();
-        println!("Intersects?: {}, Primitive: \n{}", true, prim.to_string());
-    } else {
-        println!("Intersects?: {}\n", false);
-    }
-}
-
 fn load_scene_and_test(registry: &Registry) {
     let scene = match loader::parse_xml("sample_scene.xml", registry) {
         Some(s) => s,
@@ -297,8 +247,8 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
 
     accel.build();
 
-    let width: usize = 480;
-    let height: usize = 480;
+    let width: usize = 1024;
+    let height: usize = 1024;
 
     let eye = Point3::new(10.0, 10.0, 10.0);
     let look_at = Point3::new(0.0, 0.0, 0.0);
