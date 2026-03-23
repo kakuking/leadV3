@@ -3,21 +3,28 @@ use std::{collections::HashMap};
 use roxmltree::Document;
 
 use crate::core::{
-    AngleAxis, Point2, Point3, Vector2, Vector3, camera::Camera, scene::Scene, shape::Shape
+    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
 };
 
 pub enum ParamVal {
     Float(f32),
+    Int(i32),
     Str(String),
     Bool(bool),
     Vec2(Vector2),
     Pt2(Point2),
     Vec3(Vector3),
     Pt3(Point3),
-    Rotation(AngleAxis),
+    AngleAxis(AngleAxis),
 }
 
 impl ParamVal {
+    pub fn new_int(key: &str, value: &str) -> Self {
+        Self::Int(
+            value.trim().parse::<i32>().expect(&format!("Invalid int for key '{}'", key))
+        )
+    }
+
     pub fn new_float(key: &str, value: &str) -> Self {
         Self::Float(
             value.trim().parse::<f32>().expect(&format!("Invalid float for key '{}'", key))
@@ -56,9 +63,9 @@ impl ParamVal {
         Self::Pt3(Point3::new(p[0], p[1], p[2]))
     }
 
-    pub fn new_rotation(key: &str, value: &str) -> Self {
+    pub fn new_angle_axis(key: &str, value: &str) -> Self {
         let p = Self::parse_floats(key, value, 4);
-        Self::Rotation(AngleAxis::new(p[0], p[1], p[2], p[3]))
+        Self::AngleAxis(AngleAxis::new(p[0], p[1], p[2], p[3]))
     }
 
     fn parse_floats(key: &str, value: &str, expected: usize) -> Vec<f32> {
@@ -86,13 +93,57 @@ impl ParamVal {
 
 pub struct Parameters {
     map: HashMap<String, ParamVal>,
+    transform: Transform
 }
 
 impl Parameters {
     pub fn new() -> Self {
         Self {
             map: HashMap::new(),
+            transform: Transform::identity()
         }
+    }
+
+    pub fn add_translation(&mut self, t_str: String) {
+        // println!("Adding translate: {}", t_str);
+        let t = match ParamVal::new_vector3("translate", &t_str) {
+            ParamVal::Vec3(v) => v,
+            _ => panic!("Translate requires vector 3 as input")
+        };
+
+        let transform = translation(t);
+        self.update_transform(transform);
+    }
+
+    pub fn add_scaling(&mut self, t_str: String) {
+        // println!("Adding scaling: {}", t_str);
+        let t = match ParamVal::new_vector3("scale", &t_str) {
+            ParamVal::Vec3(v) => v,
+            _ => panic!("Scale requires vector 3 as input")
+        };
+
+        let transform = scaling(t);
+        self.update_transform(transform);
+    }
+
+    pub fn add_rotation(&mut self, t_str: String) {
+        // println!("Adding rotation: {}", t_str);
+        let t = match ParamVal::new_angle_axis("rotate", &t_str) {
+            ParamVal::AngleAxis(v) => v,
+            _ => panic!("Rotation requires vector 4 as input")
+        };
+
+        let transform = rotate_angle_axis(t);
+        self.update_transform(transform);
+    }
+
+    pub fn update_transform(&mut self, t: Transform) {
+        self.transform = t * self.transform;
+    }
+
+    pub fn add_int(&mut self, key: String, value: String) {
+        let parameter = ParamVal::new_int(&key, &value);
+        self.map.insert(key, parameter);
     }
 
     pub fn add_float(&mut self, key: String, value: String) {
@@ -130,9 +181,20 @@ impl Parameters {
         self.map.insert(key, parameter);
     }
 
-    pub fn add_rotation(&mut self, key: String, value: String) {
-        let parameter = ParamVal::new_rotation(&key, &value);
+    pub fn add_angle_axis(&mut self, key: String, value: String) {
+        let parameter = ParamVal::new_angle_axis(&key, &value);
         self.map.insert(key, parameter);
+    }
+
+    pub fn get_transform(&self) -> Transform {
+        self.transform.clone()
+    }
+
+    pub fn get_int(&self, key: &str, default: Option<i32>) -> i32 {
+        match self.map.get(key) {
+            Some(ParamVal::Int(f)) => *f,
+            _ => default.unwrap_or_default(),
+        }
     }
 
     pub fn get_float(&self, key: &str, default: Option<f32>) -> f32 {
@@ -186,7 +248,7 @@ impl Parameters {
 
     pub fn get_rotation(&self, key: &str, default: Option<AngleAxis>) -> AngleAxis {
         match self.map.get(key) {
-            Some(ParamVal::Rotation(r)) => *r,
+            Some(ParamVal::AngleAxis(r)) => *r,
             _ => default.unwrap_or_default(),
         }
     }
@@ -210,6 +272,7 @@ pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
             let p_value = param.attribute("value").unwrap_or("");
 
             match p_tag {
+                "int"    => params.add_int(p_name.to_string(), p_value.to_string()),
                 "float"    => params.add_float(p_name.to_string(), p_value.to_string()),
                 "bool"     => params.add_bool(p_name.to_string(), p_value.to_string()),
                 "string"   => params.add_string(p_name.to_string(), p_value.to_string()),
@@ -217,7 +280,10 @@ pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
                 "vector3"  => params.add_vector3(p_name.to_string(), p_value.to_string()),
                 "point2"   => params.add_point2(p_name.to_string(), p_value.to_string()),
                 "point3"   => params.add_point3(p_name.to_string(), p_value.to_string()),
-                "rotation" => params.add_rotation(p_name.to_string(), p_value.to_string()),
+                "angleAxis" => params.add_angle_axis(p_name.to_string(), p_value.to_string()),
+                "scale"    => params.add_scaling(p_value.to_string()),
+                "translate"    => params.add_translation(p_value.to_string()),
+                "rotate"    => params.add_rotation(p_value.to_string()),
                 _ => {
                     eprintln!("Unknown parameter found: {}", p_tag);
                     continue;
@@ -231,15 +297,17 @@ pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
     Some(scene)
 }
 
-pub trait Manufacturable {
-    fn create_from_parameters(param: Parameters) -> Self;
+pub trait Manufacturable<T> {
+    fn create_from_parameters(param: Parameters) -> T;
 }
 
-pub type FactoryFn<T> = Box<dyn Fn(Parameters) -> Vec<T>>;
+pub type FactoryFn<T> = Box<dyn Fn(Parameters) -> T>;
+pub type MultiFactoryFn<T> = Box<dyn Fn(Parameters) -> Vec<T>>;
 
 pub struct Registry {
-    pub shape_factories: HashMap<String, FactoryFn<Shape>>,
+    pub shape_factories: HashMap<String, MultiFactoryFn<Shape>>,
     pub camera_factories: HashMap<String, FactoryFn<Camera>>,
+    pub sampler_factories: HashMap<String, FactoryFn<Sampler>>
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -247,11 +315,12 @@ impl Registry {
     pub fn new() -> Self {
         Self {
             shape_factories: HashMap::new(),
-            camera_factories: HashMap::new()
+            camera_factories: HashMap::new(),
+            sampler_factories: HashMap::new()
         }
     }
 
-    pub fn register_shape(&mut self, t: String, function: FactoryFn<Shape>) {
+    pub fn register_shape(&mut self, t: String, function: MultiFactoryFn<Shape>) {
         self.shape_factories.insert(t, function);
     }
 
@@ -268,10 +337,22 @@ impl Registry {
 
     fn create_camera(&self, t: String, parameters: Parameters) -> Camera {
         match self.camera_factories.get(&t) {
-            Some(s) => s(parameters).pop().unwrap(),
+            Some(s) => s(parameters),
             _ => panic!("NO SHAPE FOUND OF TYPE {}", t),
         }
     }
+
+    pub fn register_sampler(&mut self, t: String, function: FactoryFn<Sampler>) {
+        self.sampler_factories.insert(t, function);
+    }
+
+    fn create_sampler(&self, t: String, parameters: Parameters) -> Sampler {
+        match self.sampler_factories.get(&t) {
+            Some(s) => s(parameters),
+            _ => panic!("NO SHAPE FOUND OF TYPE {}", t),
+        }
+    }
+
     pub fn add_to_scene(
         &self,
         scene: &mut Scene,
@@ -282,6 +363,7 @@ impl Registry {
         match object.as_str() {
             "shape" => scene.add_shapes(self.create_shape(object_type.to_string(), parameters)),
             "camera" => scene.add_camera(self.create_camera(object_type.to_string(), parameters)),
+            "sampler" => scene.add_sampler(self.create_sampler(object_type.to_string(), parameters)),
             _ => eprintln!("No object found with name {}", object),
         }
     }

@@ -629,7 +629,7 @@ pub fn rotate_angle_axis(aa: AngleAxis) -> Transform {
     use nalgebra::{Vector3, Rotation3, Unit, Projective3};
 
     let axis = Vector3::new(aa.x, aa.y, aa.z);
-    let angle = aa.w;
+    let angle = aa.w.to_radians();
 
     let axis_unit = Unit::new_normalize(axis);
     let rotation = Rotation3::from_axis_angle(&axis_unit, angle);

@@ -119,7 +119,7 @@ impl Camera {
     }
 }
 
-pub trait CameraT: Manufacturable + Printable {
+pub trait CameraT: Manufacturable<Camera> + Printable {
     fn get_medium(&self) -> Option<Arc<Medium>>;
     fn get_shutter_open(&self) -> f32;
     fn get_shutter_close(&self) -> f32;

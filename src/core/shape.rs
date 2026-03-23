@@ -99,7 +99,7 @@ impl Printable for Shape {
     }
 }
 
-pub trait ShapeT: Manufacturable + Printable {
+pub trait ShapeT: Manufacturable<Shape> + Printable {
     fn get_object_to_world(&self) -> &Transform;
     fn get_world_to_object(&self) -> &Transform;
     fn get_reverse_orientation(&self) -> bool;

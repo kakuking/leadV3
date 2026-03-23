@@ -8,11 +8,11 @@ pub const MAX: f32 = f32::MAX;
 pub const PI: f32 = f32::consts::PI;
 pub const INV_PI: f32 = f32::consts::FRAC_1_PI;
 pub const INV_4PI: f32 = 0.25 * INV_PI;
-pub const EPSILON: f32 = 0.0001;
-pub const MACHINE_EPSILON: f32 = f32::EPSILON;
+pub const EPSILON: f32 = f32::EPSILON;
+pub const ONE_MINUS_EPSILON: f32 = 1.0 - EPSILON;
 
 pub  fn gamma(n: f32) -> f32 {
-    n * MACHINE_EPSILON / (1.0 - n * MACHINE_EPSILON)
+    n * EPSILON / (1.0 - n * EPSILON)
 }
 
 pub fn lerp(t: f32, a: f32, b: f32) -> f32 {

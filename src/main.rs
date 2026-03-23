@@ -3,7 +3,8 @@ use std::{fs::File, sync::Arc};
 
 use crate::camera::orthographic::OrthographicCamera;
 use crate::core::Point2;
-use crate::core::camera::{Camera, CameraSample};
+use crate::core::camera::{CameraSample};
+use crate::sampler::stratified_sampler::StratifiedSampler;
 use crate::{core::{INFINITY, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionT, medium::MediumInterface, primitive::{GeometricPrimitive, Primitive}, scene::Scene, shape::Shape, translation}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Registry}, shape::{Sphere, bounding_volume_heirarchy::{BVHAccel, SplitMethod}, triangle_mesh::TriangleMesh}};
 
 pub mod core;
@@ -12,6 +13,7 @@ pub mod interaction;
 pub mod shape;
 pub mod light;
 pub mod camera;
+pub mod sampler;
 
 pub mod loader;
 
@@ -249,6 +251,7 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
     accel.build();
 
     let camera = &scene.camera;
+    let mut sampler = scene.sampler;
 
     let film = camera.get_film();
     let width = film.full_resolution.x as usize;
@@ -258,32 +261,52 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
 
     for y in 0..height {
         for x in 0..width {
-            let sample = CameraSample {
-                p_film: Point2::new(x as f32 + 0.5, y as f32 + 0.5),
-                p_lens: Point2::new(0.5, 0.5),
-                time: 0.0,
-            };
+            let pixel = Point2::new(x as f32, y as f32);
+            sampler.start_pixel(pixel);
 
-            let mut ray = Ray::new();
-            let wt = camera.generate_ray(sample, &mut ray);
+            let mut hit_count = 0usize;
+            let mut num_samples = 0usize;
 
-            if wt == 0.0 {
-                continue;
+            loop {
+                num_samples += 1;
+
+                let p_film_offset = sampler.get_2d();
+                let p_lens = sampler.get_2d();
+
+                let sample = CameraSample {
+                    p_film: Point2::new(
+                        x as f32 + p_film_offset.x,
+                        y as f32 + p_film_offset.y,
+                    ),
+                    p_lens,
+                    time: sampler.get_1d(),
+                };
+
+                let mut ray = Ray::new();
+                let wt = camera.generate_ray(sample, &mut ray);
+
+                if wt != 0.0 {
+                    let mut isect = SurfaceInteraction::new();
+                    if accel.intersect(&ray, &mut isect) {
+                        hit_count += 1;
+                    }
+                }
+
+                if !sampler.start_next_sample() {
+                    break;
+                }
             }
 
-            let mut isect = SurfaceInteraction::new();
-            let hit = accel.intersect(&ray, &mut isect);
+            // println!("{:4} {:4} -> {:4} samples", x, y, num_samples);
 
             let idx = (y * width + x) * 3;
-            if hit {
-                pixels[idx]     = 0;
-                pixels[idx + 1] = 0;
-                pixels[idx + 2] = 0;
-            } else {
-                pixels[idx]     = 255;
-                pixels[idx + 1] = 255;
-                pixels[idx + 2] = 255;
-            }
+
+            let coverage = hit_count as f32 / num_samples as f32;
+            let value = ((1.0 - coverage) * 255.0) as u8;
+
+            pixels[idx] = value;
+            pixels[idx + 1] = value;
+            pixels[idx + 2] = value;
         }
     }
 
@@ -305,17 +328,38 @@ fn main() {
     let mut registry = Registry::new();
     registry.register_shape(
         "sphere".to_string(),
-        Box::new(|params| vec![Shape::Sphere(Sphere::create_from_parameters(params))]),
+        Box::new(
+            |params| {
+                vec![Sphere::create_from_parameters(params)]
+            }
+        ),
     );
 
     registry.register_shape(
         "mesh".to_string(),
-        Box::new(|params| TriangleMesh::create_from_parameters(params))
+        Box::new(
+            |params| {
+                TriangleMesh::create_from_parameters(params)
+            }
+        )
     );
 
     registry.register_camera(
         "orthographic".to_string(), 
-        Box::new(|params| vec![Camera::Orthographic(OrthographicCamera::create_from_parameters(params))])
+        Box::new(
+            |params| {
+                OrthographicCamera::create_from_parameters(params)
+            }
+        )
+    );
+
+    registry.register_sampler(
+        "stratified".to_string(), 
+        Box::new(
+            |params| {
+                StratifiedSampler::create_from_parameters(params)
+            }
+        )
     );
 
     // load_scene_and_test(&registry);

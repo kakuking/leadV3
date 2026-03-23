@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_bounds, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::Interaction, permute_p, permute_v, shape::{Shape, ShapeT}}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
+use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::Interaction, permute_p, permute_v, shape::{Shape, ShapeT}}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
 
 #[derive(Debug)]
 pub struct TriangleMesh {
@@ -56,7 +56,7 @@ impl TriangleMesh {
         };
 
         Self {
-            object_to_world: object_to_world.clone(),
+            object_to_world: Arc::new(Transform::identity()),
             n_triangles,
             n_vertices,
             vertex_indices,
@@ -70,13 +70,14 @@ impl TriangleMesh {
     }
 
     pub fn create_from_parameters(params: Parameters) -> Vec<Shape> {
-        let filename = params.get_string("filename", Some("sphere.obj".to_string()));
+        let filename = params.get_string("filename", Some("cube.obj".to_string()));
+        let object_to_world = params.get_transform();
 
-        let mesh = Self::load_from_file(filename);
+        let mesh = Self::load_from_file(filename, object_to_world);
         Self::to_triangles(&Arc::new(mesh))
     }
 
-    pub fn load_from_file(filename: String) -> Self {
+    pub fn load_from_file(filename: String, object_to_world: Transform) -> Self {
         let load_options = tobj::LoadOptions {
             triangulate: true,   // IMPORTANT: ensures triangles
             single_index: true,  // positions/normals/uv share indices
@@ -134,8 +135,6 @@ impl TriangleMesh {
         let n_vertices = p.len();
 
         // Identity transform for now
-        let object_to_world = Transform::identity();
-
         Self::init(
             Arc::new(object_to_world),
             n_triangles,
@@ -230,8 +229,8 @@ impl Printable for Triangle {
     }
 }
 
-impl Manufacturable for Triangle {
-    fn create_from_parameters(_param: crate::loader::Parameters) -> Self {
+impl Manufacturable<Shape> for Triangle {
+    fn create_from_parameters(_param: crate::loader::Parameters) -> Shape {
         panic!("Triangle is not manufacturable!")
     }
 }

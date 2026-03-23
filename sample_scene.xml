@@ -1,8 +1,9 @@
 <scene>
-    <!-- <shape type="sphere">
-        <float name="radius" value="1.0"/>
-        <vector3 name="translate" value="0.0, 0.0, 0.0"/>
-    </shape> -->
+    <sampler type="stratified">
+        <int name="x_pixel_samples" value="1"/>
+        <int name="y_pixel_samples" value="1"/>
+        <bool name="jitter" value="true"/>
+    </sampler>
     <camera type="orthographic">
         <point3 name="eye" value="10.0, 10.0, 10.0"/>
         <point3 name="target" value="0.0, 0.0, 0.0"/>
@@ -12,7 +13,16 @@
         <point2 name="resolution" value="512, 512"/>
     </camera>
 
+    <!-- <shape type="sphere">
+        <float name="radius" value="1.0"/>
+
+        <scale value="0.5, 0.5, 0.5"/>
+    </shape> -->
+
     <shape type="mesh">
         <string name="filename" value="monkey.obj"/>
+
+        <!-- <scale value="0.5, 0.5, 0.5"/> -->
+        <rotate value="0, 1, 0, 90"/>
     </shape>
 </scene>

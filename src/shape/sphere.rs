@@ -1,4 +1,4 @@
-use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, gamma, interaction::Interaction, quadratic, shape::ShapeT, translation}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
+use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, gamma, interaction::Interaction, quadratic, shape::{Shape, ShapeT}, translation}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -60,7 +60,7 @@ impl ShapeT for Sphere {
 
         let a = ray.d.x * ray.d.x + ray.d.y * ray.d.y + ray.d.z * ray.d.z;
         let b = 2.0 * (ray.d.x * ray.o.x + ray.d.y * ray.o.y + ray.d.z * ray.o.z);
-        let c = ray.o.x * ray.o.x + ray.o.y * ray.o.y + ray.o.z * ray.o.z;
+        let c = ray.o.x * ray.o.x + ray.o.y * ray.o.y + ray.o.z * ray.o.z - self.radius * self.radius;
 
         let mut t0: f32 = 0.0;
         let mut t1: f32 = 0.0;
@@ -158,11 +158,11 @@ impl ShapeT for Sphere {
     }
 }
 
-impl Manufacturable for Sphere {
-    fn create_from_parameters(param: crate::loader::Parameters) -> Self {
-        let t = param.get_vector3("translate", None);
+impl Manufacturable<Shape> for Sphere {
+    fn create_from_parameters(param: crate::loader::Parameters) -> Shape {
+        let t = param.get_transform();
 
-        let object_to_world: Transform = translation(t);
+        let object_to_world: Transform = t;
         let world_to_object: Transform = object_to_world.inverse();
         
         let reverse_orientation: bool = param.get_bool("reverse_orientation", Some(false));
@@ -171,7 +171,13 @@ impl Manufacturable for Sphere {
         let z_max: f32 = param.get_float("z_max", Some(1.0));
         let phi_max: f32 = param.get_float("phi_max", Some(360.0));
 
-        Self::init(object_to_world, world_to_object, reverse_orientation, radius, z_min, z_max, phi_max)
+        let ret = Self::init(object_to_world, world_to_object, reverse_orientation, radius, z_min, z_max, phi_max);
+
+        println!("{}", ret.to_string());
+
+        Shape::Sphere(
+            ret
+        )
     }
 }
 
