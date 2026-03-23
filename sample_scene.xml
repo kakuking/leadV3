@@ -3,6 +3,15 @@
         <float name="radius" value="1.0"/>
         <vector3 name="translate" value="0.0, 0.0, 0.0"/>
     </shape> -->
+    <camera type="orthographic">
+        <point3 name="eye" value="10.0, 10.0, 10.0"/>
+        <point3 name="target" value="0.0, 0.0, 0.0"/>
+        <vector3 name="up" value="0.0, 1.0, 0.0"/>
+
+        <float name="extent" value="2"/>
+        <point2 name="resolution" value="512, 512"/>
+    </camera>
+
     <shape type="mesh">
         <string name="filename" value="monkey.obj"/>
     </shape>

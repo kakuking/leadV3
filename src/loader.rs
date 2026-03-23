@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use roxmltree::Document;
 
 use crate::core::{
-    AngleAxis, Point2, Point3, Vector2, Vector3, scene::Scene, shape::Shape
+    AngleAxis, Point2, Point3, Vector2, Vector3, camera::Camera, scene::Scene, shape::Shape
 };
 
 pub enum ParamVal {
@@ -239,13 +239,15 @@ pub type FactoryFn<T> = Box<dyn Fn(Parameters) -> Vec<T>>;
 
 pub struct Registry {
     pub shape_factories: HashMap<String, FactoryFn<Shape>>,
+    pub camera_factories: HashMap<String, FactoryFn<Camera>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
 impl Registry {
     pub fn new() -> Self {
         Self {
-            shape_factories: HashMap::new()
+            shape_factories: HashMap::new(),
+            camera_factories: HashMap::new()
         }
     }
 
@@ -260,6 +262,16 @@ impl Registry {
         }
     }
 
+    pub fn register_camera(&mut self, t: String, function: FactoryFn<Camera>) {
+        self.camera_factories.insert(t, function);
+    }
+
+    fn create_camera(&self, t: String, parameters: Parameters) -> Camera {
+        match self.camera_factories.get(&t) {
+            Some(s) => s(parameters).pop().unwrap(),
+            _ => panic!("NO SHAPE FOUND OF TYPE {}", t),
+        }
+    }
     pub fn add_to_scene(
         &self,
         scene: &mut Scene,
@@ -269,6 +281,7 @@ impl Registry {
     ) {
         match object.as_str() {
             "shape" => scene.add_shapes(self.create_shape(object_type.to_string(), parameters)),
+            "camera" => scene.add_camera(self.create_camera(object_type.to_string(), parameters)),
             _ => eprintln!("No object found with name {}", object),
         }
     }

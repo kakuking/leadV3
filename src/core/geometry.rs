@@ -652,3 +652,17 @@ pub fn scaling(s: Vector3) -> Transform {
 
     Projective3::from_matrix_unchecked(scale.to_homogeneous())
 }
+
+pub fn look_at(eye: &Point3, target: &Point3, up: &Vector3) -> Transform {
+    let dir = (target - eye).normalize();
+    let right = up.normalize().cross(&dir).normalize();
+    let new_up = dir.cross(&right);
+
+    let mut m = nalgebra::Matrix4::identity();
+    m[(0, 0)] = right.x;   m[(1, 0)] = right.y;   m[(2, 0)] = right.z;
+    m[(0, 1)] = new_up.x;  m[(1, 1)] = new_up.y;  m[(2, 1)] = new_up.z;
+    m[(0, 2)] = dir.x;     m[(1, 2)] = dir.y;      m[(2, 2)] = dir.z;
+    m[(0, 3)] = eye.x;     m[(1, 3)] = eye.y;      m[(2, 3)] = eye.z;
+
+    Transform::from_matrix_unchecked(m)
+}

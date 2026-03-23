@@ -1,6 +1,9 @@
 use std::io::Write;
 use std::{fs::File, sync::Arc};
 
+use crate::camera::orthographic::OrthographicCamera;
+use crate::core::Point2;
+use crate::core::camera::{Camera, CameraSample};
 use crate::{core::{INFINITY, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionT, medium::MediumInterface, primitive::{GeometricPrimitive, Primitive}, scene::Scene, shape::Shape, translation}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Registry}, shape::{Sphere, bounding_volume_heirarchy::{BVHAccel, SplitMethod}, triangle_mesh::TriangleMesh}};
 
 pub mod core;
@@ -238,60 +241,46 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
 
     let shapes = &scene.shapes;
     let mut accel = BVHAccel::init(32, SplitMethod::SAH);
-
     let mi = MediumInterface::new();
     for shape in shapes {
         let gp = GeometricPrimitive::init(shape.clone(), None, None, mi.clone());
         accel.add_primitive(Arc::new(Primitive::Geometric(Arc::new(gp))));
     }
-
     accel.build();
 
-    let width: usize = 1024;
-    let height: usize = 1024;
+    let camera = &scene.camera;
 
-    let eye = Point3::new(10.0, 10.0, 10.0);
-    let look_at = Point3::new(0.0, 0.0, 0.0);
-    let up = Vector3::new(0.0, 1.0, 0.0);
-
-    // Simple pinhole camera basis
-    let forward = (look_at - eye).normalize();
-    let right = forward.cross(&up).normalize();
-    let true_up = right.cross(&forward).normalize();
-
-    // 1:1 aspect ratio, use a simple 45 degree vertical FOV
-    let fov_y_deg: f32 = 45.0;
-    let fov_y = fov_y_deg.to_radians();
-    let half_height = (fov_y * 0.5).tan();
-    let half_width = half_height; // aspect ratio = 1
+    let film = camera.get_film();
+    let width = film.full_resolution.x as usize;
+    let height = film.full_resolution.y as usize;
 
     let mut pixels: Vec<u8> = vec![255; width * height * 3];
 
     for y in 0..height {
         for x in 0..width {
-            // NDC in [-1, 1], sample pixel center
-            let u = ((x as f32 + 0.5) / width as f32) * 2.0 - 1.0;
-            let v = 1.0 - ((y as f32 + 0.5) / height as f32) * 2.0;
+            let sample = CameraSample {
+                p_film: Point2::new(x as f32 + 0.5, y as f32 + 0.5),
+                p_lens: Point2::new(0.5, 0.5),
+                time: 0.0,
+            };
 
-            let dir = (forward
-                + right * (u * half_width)
-                + true_up * (v * half_height))
-                .normalize();
+            let mut ray = Ray::new();
+            let wt = camera.generate_ray(sample, &mut ray);
 
-            let ray = Ray::init(&eye, &dir, 1.0e30, 0.0, None, None);
+            if wt == 0.0 {
+                continue;
+            }
 
             let mut isect = SurfaceInteraction::new();
             let hit = accel.intersect(&ray, &mut isect);
 
             let idx = (y * width + x) * 3;
             if hit {
-                // black
-                pixels[idx] = 0;
+                pixels[idx]     = 0;
                 pixels[idx + 1] = 0;
                 pixels[idx + 2] = 0;
             } else {
-                // white
-                pixels[idx] = 255;
+                pixels[idx]     = 255;
                 pixels[idx + 1] = 255;
                 pixels[idx + 2] = 255;
             }
@@ -302,18 +291,10 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
     writeln!(file, "P3").unwrap();
     writeln!(file, "{} {}", width, height).unwrap();
     writeln!(file, "255").unwrap();
-
     for y in 0..height {
         for x in 0..width {
             let idx = (y * width + x) * 3;
-            writeln!(
-                file,
-                "{} {} {}",
-                pixels[idx],
-                pixels[idx + 1],
-                pixels[idx + 2]
-            )
-            .unwrap();
+            writeln!(file, "{} {} {}", pixels[idx], pixels[idx + 1], pixels[idx + 2]).unwrap();
         }
     }
 
@@ -330,6 +311,11 @@ fn main() {
     registry.register_shape(
         "mesh".to_string(),
         Box::new(|params| TriangleMesh::create_from_parameters(params))
+    );
+
+    registry.register_camera(
+        "orthographic".to_string(), 
+        Box::new(|params| vec![Camera::Orthographic(OrthographicCamera::create_from_parameters(params))])
     );
 
     // load_scene_and_test(&registry);

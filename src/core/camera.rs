@@ -6,6 +6,20 @@ pub struct Film {
     pub full_resolution: Point2
 }
 
+impl Film {
+    pub fn new() -> Self {
+        Self {
+            full_resolution: Point2::new(1.0, 1.0)
+        }
+    }
+
+    pub fn init(full_resolution: Point2) -> Self {
+        Self {
+            full_resolution
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct CameraSample {
     pub p_film: Point2,
@@ -152,7 +166,7 @@ impl ProjectedCameraBase {
 
         screen_to_raster = screen_to_raster * scaling(Vector3::new(
             1.0 / (screen_window.p_max.x - screen_window.p_min.x), 
-            1.0 / (screen_window.p_max.y - screen_window.p_min.y), 
+            1.0 / (screen_window.p_min.y - screen_window.p_max.y), 
             1.0
         ));
 

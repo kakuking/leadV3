@@ -1,6 +1,6 @@
 use std::{cell::Cell, sync::Arc};
 
-use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Spectrum, Transform, Vector3, apply_transform_to_ray, camera::{ CameraSample, CameraT, Film, ProjectedCameraBase}, interaction::Interaction, lerp, light::VisibilityTester, medium::Medium, sampler::concentric_sample_disk, scaling, translation}, loader::Manufacturable};
+use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Spectrum, Transform, Vector3, apply_transform_to_ray, camera::{ CameraSample, CameraT, Film, ProjectedCameraBase}, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, translation}, loader::{Manufacturable, Parameters}};
 
 pub struct OrthographicCamera {
     pub base: ProjectedCameraBase,
@@ -75,6 +75,8 @@ impl CameraT for OrthographicCamera {
 
         *ray = apply_transform_to_ray(&ray, &self.base.camera_to_world);
 
+        // println!("O: {}, {}, {} ---> {}, {} ,{}", ray.o.x, ray.o.y, ray.o.z, ray.d.x, ray.d.y, ray.d.z);
+
         1.0
     }
 
@@ -103,7 +105,49 @@ impl Printable for OrthographicCamera {
 }
 
 impl Manufacturable for OrthographicCamera {
-    fn create_from_parameters(param: crate::loader::Parameters) -> Self {
-        todo!("orthographic::create_from_param")
+    fn create_from_parameters(params: Parameters) -> Self {
+        let eye    = params.get_point3("eye",    Some(Point3::new(0.0, 0.0, -1.0)));
+        let target = params.get_point3("target", Some(Point3::origin()));
+        let up     = params.get_vector3("up",    Some(Vector3::new(0.0, 1.0, 0.0)));
+
+        let camera_to_world = look_at(&eye, &target, &up);
+
+        let extent = params.get_float("extent", Some(5.0));
+
+        let screen_window = Bounds2::init_two(
+            &Point2::new(
+                params.get_float("screen_min_x", Some(-extent)),
+                params.get_float("screen_min_y", Some(-extent)),
+            ),
+            &Point2::new(
+                params.get_float("screen_max_x", Some(extent)),
+                params.get_float("screen_max_y", Some(extent)),
+            ),
+        );
+
+        let shutter_open   = params.get_float("shutter_open",   Some(0.0));
+        let shutter_close  = params.get_float("shutter_close",  Some(1.0));
+        let lens_radius    = params.get_float("lens_radius",    Some(0.0));
+        let focal_distance = params.get_float("focal_distance", Some(1e6));
+
+        let res = params.get_point2("resolution", Some(Point2::new(1000.0, 1000.0)));
+
+        let film = Arc::new(
+            Film::init(res)
+        );
+
+        // film and medium would typically come from the scene, not params
+        // pass them in or use defaults
+        OrthographicCamera::init(
+            camera_to_world,
+            screen_window,
+            shutter_open,
+            shutter_close,
+            lens_radius,
+            focal_distance,
+            // film and medium need to come from somewhere else
+            film,
+            None,
+        )
     }
 }

@@ -1,15 +1,17 @@
 use std::sync::Arc;
 
-use crate::core::shape::Shape;
+use crate::{camera::orthographic::OrthographicCamera, core::{camera::Camera, shape::Shape}, loader::{Manufacturable, Parameters}};
 
 pub struct Scene {
-    pub shapes: Vec<Arc<Shape>>
+    pub shapes: Vec<Arc<Shape>>,
+    pub camera: Camera
 }
 
 impl Scene {
     pub fn new() -> Self {
         Self {
-            shapes: Vec::new()
+            shapes: Vec::new(),
+            camera: Camera::Orthographic(OrthographicCamera::create_from_parameters(Parameters::new()))
         }
     }
 
@@ -17,5 +19,9 @@ impl Scene {
         for shape in shapes {
             self.shapes.push(Arc::new(shape));
         }
+    }
+
+    pub fn add_camera(&mut self, camera: Camera) {
+        self.camera = camera;
     }
 }
