@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use roxmltree::Document;
 
 use crate::core::{
-    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, film::Film, filter::Filter, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
+    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, film::Film, filter::Filter, light::Light, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
 };
 
 #[derive(Clone)]
@@ -348,7 +348,8 @@ pub enum LeadObject {
     Shape(Vec<Shape>),
     Sampler(Arc<Sampler>),
     Filter(Arc<Filter>),
-    Film(Arc<Film>)
+    Film(Arc<Film>),
+    Light(Arc<Light>)
 }
 
 pub trait Manufacturable<T> {
@@ -364,6 +365,7 @@ pub struct Registry {
     pub sampler_factories: HashMap<String, FactoryFn<Sampler>>,
     pub filter_factories: HashMap<String, FactoryFn<Filter>>,
     pub film_factories: HashMap<String, FactoryFn<Film>>,
+    pub light_factories: HashMap<String, FactoryFn<Light>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -375,6 +377,7 @@ impl Registry {
             sampler_factories: HashMap::new(),
             filter_factories: HashMap::new(),
             film_factories: HashMap::new(),
+            light_factories: HashMap::new(),
         }
     }
 
@@ -433,6 +436,17 @@ impl Registry {
         }
     }
 
+    pub fn register_light(&mut self, t: String, function: FactoryFn<Light>) {
+        self.light_factories.insert(t, function);
+    }
+
+    fn create_light(&self, t: String, parameters: Parameters) -> Light {
+        match self.light_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO LIGHT FOUND OF TYPE {}", t),
+        }
+    }
+
     pub fn create_lead_object(
         &self,
         object: String,
@@ -445,6 +459,7 @@ impl Registry {
             "sampler" => LeadObject::Sampler(Arc::new(self.create_sampler(object_type, parameters))),
             "filter" => LeadObject::Filter(Arc::new(self.create_filter(object_type, parameters))),
             "film" => LeadObject::Film(Arc::new(self.create_film(object_type, parameters))),
+            "light" => LeadObject::Light(Arc::new(self.create_light(object_type, parameters))),
             _ => panic!("No lead object found with name {}", object),
         }
     }
@@ -460,6 +475,7 @@ impl Registry {
             "shape" => scene.add_shapes(self.create_shape(object_type.to_string(), parameters)),
             "camera" => scene.add_camera(self.create_camera(object_type.to_string(), parameters)),
             "sampler" => scene.add_sampler(self.create_sampler(object_type.to_string(), parameters)),
+            "light" => scene.add_light(self.create_light(object_type, parameters)),
             _ => eprintln!("No object found with name {}", object),
         }
     }

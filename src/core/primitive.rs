@@ -1,9 +1,10 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{self, Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, shape::bounding_volume_heirarchy::BVHAccel};
+use crate::{core::{Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, shape::bounding_volume_heirarchy::BVHAccel};
 
 #[derive(Debug, Clone)]
 pub enum Primitive {
+    Empty,
     Geometric(Arc<GeometricPrimitive>),
     BVH(Arc<BVHAccel>)
 }
@@ -13,14 +14,16 @@ impl Primitive {
         match self {
             Self::Geometric(g) => { g.world_bounds() }
             Self::BVH(b) => { b.world_bounds() }
+            Self::Empty => panic!("world bounds called on empty primitive")
         }
     }
     pub fn intersect(&self, r: &Ray, isect: &mut SurfaceInteraction) -> bool {
         match self {
+            Self::Empty => panic!("intersect called on empty primitive"),
             Self::Geometric(g) => {
                 match g.intersect(r, isect) {
                     true => {
-                        isect.primitive = Some(Primitive::Geometric(g.clone()));
+                        isect.primitive = Primitive::Geometric(g.clone());
                         isect.shape = Some(g.shape.clone());
                         true
                     }
@@ -33,24 +36,28 @@ impl Primitive {
     }
     pub fn intersect_p(&self, ray: &Ray) -> bool {
         match self {
+            Self::Empty => panic!("intersect_p called on empty primitive"),
             Self::Geometric(g) => { g.intersect_p(ray) }
             Self::BVH(b) => { b.intersect_p(ray) }
         }
     }
     pub fn get_area_light(&self) -> Option<Arc<AreaLight>> {
         match self {
+            Self::Empty => panic!("get_area_light called on empty primitive"),
             Self::Geometric(g) => { g.get_area_light().clone() }
             Self::BVH(b) => { b.get_area_light() }
         }
     }
     pub fn get_material(&self) -> Option<Arc<Material>> {
         match self {
+            Self::Empty => panic!("get_material called on empty primitive"),
             Self::Geometric(g) => { g.get_material().clone() }
             Self::BVH(b) => { b.get_material() }
         }
     }
     pub fn compute_scattering_function(&self, isect: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_nodes: bool) {
         match self {
+            Self::Empty => panic!("compute_scattering_function called on empty primitive"),
             Self::Geometric(g) => { g.compute_scattering_function(isect, mode, allow_multiple_nodes); }
             Self::BVH(b) => { b.compute_scattering_function(isect, mode, allow_multiple_nodes); }
         }
@@ -58,6 +65,7 @@ impl Primitive {
 
     pub fn to_string(&self) -> String {
         match self {
+            Self::Empty => panic!("to_string called on empty primitive"),
             Self::Geometric(g) => {
                 g.shape.to_string()
             }

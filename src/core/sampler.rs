@@ -163,6 +163,14 @@ impl Sampler {
     }
 }
 
+impl Printable for Sampler {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Stratified(s) => s.to_string()
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct SamplerBase {
     pub samples_per_pixel: usize,

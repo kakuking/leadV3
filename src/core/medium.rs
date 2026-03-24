@@ -1,8 +1,18 @@
 use std::sync::Arc;
 
+use crate::core::{Ray, sampler::Sampler, spectrum::Spectrum};
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Medium {
 
+}
+
+impl Medium {
+    pub fn tr(&self, _ray: &Ray, _sampler: &mut Sampler) -> Spectrum {
+        match self {
+            _ => panic!("Medium::Tr")
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

@@ -7,12 +7,18 @@ pub enum TransportMode {
     Importance
 }
 
+#[derive(Debug, Clone)]
 pub enum Interaction {
     Surface(SurfaceInteraction),
     // Medium(MediumInteraction)
 }
 
 impl Interaction {
+    pub fn get_base(&self) -> &InteractionBase {
+        match self {
+            Self::Surface(s) => s.get_base()
+        }
+    }
     pub fn get_p(&self) -> &Point3 {
         match self {
             Self::Surface(s) => s.get_p()
@@ -86,6 +92,7 @@ impl Interaction {
 
 pub trait InteractionT {
     fn new() -> Self;
+    fn get_base(&self) -> &InteractionBase;
     fn init(p: &Point3, n: &Normal3, p_error: &Vector3, wo: &Vector3, time: f32, medium_interface: MediumInterface) -> Self;
     fn init_no_normal(p: &Point3, wo: &Vector3, time: f32, medium_interface: MediumInterface) -> Self;
     fn init_no_wo(p: &Point3, time: f32, medium_interface: MediumInterface) -> Self;
@@ -107,6 +114,7 @@ pub trait InteractionT {
     fn spawn_ray_to_interaction(&self, it: &InteractionBase) -> Ray;
 }
 
+#[derive(Debug, Clone)]
 pub struct InteractionBase {
     pub p: Point3,
     pub time: f32,

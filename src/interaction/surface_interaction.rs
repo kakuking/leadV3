@@ -1,7 +1,8 @@
-use std::{cell::Cell, sync::Arc};
+use std::{cell::Cell, primitive, sync::Arc};
 
-use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::{GeometricPrimitive, Primitive}, shape::Shape, spectrum::Spectrum};
+use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::{GeometricPrimitive, Primitive}, shape::Shape, solve_linear_system_2x2, spectrum::Spectrum};
 
+#[derive(Debug, Clone)]
 pub struct Shading {
     pub n: Normal3,
 
@@ -23,6 +24,7 @@ impl Shading {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct SurfaceInteraction {
     pub base: InteractionBase,
 
@@ -35,7 +37,7 @@ pub struct SurfaceInteraction {
     pub shape: Option<Arc<Shape>>,
     pub shading: Shading,
 
-    pub bsdf: Option<Arc<BSDF>>,
+    pub bsdf: Option<BSDF>,
     pub bssrdf: Option<Arc<BSSRDF>>,
 
     pub dpdx: Cell<Vector3>,
@@ -46,7 +48,7 @@ pub struct SurfaceInteraction {
     pub dudy: Cell<f32>,
     pub dvdy: Cell<f32>,
 
-    pub primitive: Option<Primitive>,
+    pub primitive: Primitive,
 }
 
 impl InteractionT for SurfaceInteraction {
@@ -69,7 +71,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
-            primitive: None
+            primitive: Primitive::Empty
         }
     }
 
@@ -92,7 +94,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
-            primitive: None
+            primitive: Primitive::Empty
         }
     }
 
@@ -115,7 +117,7 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
-            primitive: None
+            primitive: Primitive::Empty
         }
     }
     fn init_no_wo(p: &Point3, time: f32, medium_interface: MediumInterface) -> Self {
@@ -137,10 +139,11 @@ impl InteractionT for SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
-            primitive: None
+            primitive: Primitive::Empty
         }
     }
 
+    fn get_base(&self) -> &InteractionBase { &self.base }
     fn get_p(&self) -> &Point3 { &self.base.p }
     fn get_time(&self) -> &f32 { &self.base.time }
     fn get_p_error(&self) -> &Vector3 { &self.base.p_error }
@@ -197,7 +200,7 @@ impl SurfaceInteraction {
             dvdx: Cell::new(0.0),
             dudy: Cell::new(0.0),
             dvdy: Cell::new(0.0),
-            primitive: None
+            primitive: Primitive::Empty
         }
     }
 
@@ -222,12 +225,81 @@ impl SurfaceInteraction {
         self.shading.dndv = dndvs.clone();
     }
 
-    pub fn compute_scattering_functions(&mut self, _ray: &Ray, _allow_multiple_lobs: Option<bool>, _mode: Option<TransportMode>) {
-        todo!("surface_inter::compute_scattering");
+    pub fn compute_scattering_functions(&mut self, ray: &Ray, allow_multiple_lobes: bool, mode: TransportMode) {
+        self.compute_differentials(ray);
+
+        let primitive = self.primitive.clone();
+        primitive.compute_scattering_function(self, mode, allow_multiple_lobes);
+        self.primitive = primitive;
     }
 
-    pub fn compute_differentials(&self, _r: &Ray) {
-        todo!("surface_inter::compute_diff");
+    pub fn compute_differentials(&self, ray: &Ray) {
+        if let Some(diff) = &ray.differential {
+            let p = self.base.p;
+            let n = self.base.n;
+
+            // Compute auxiliary intersection points with plane
+            let d = -n.dot(&Vector3::new(p.x, p.y, p.z));
+
+            let rxo = Vector3::new(diff.rx_o.x, diff.rx_o.y, diff.rx_o.z);
+            let ryo = Vector3::new(diff.ry_o.x, diff.ry_o.y, diff.ry_o.z);
+
+            let denom_x = n.dot(&diff.rx_d);
+            let denom_y = n.dot(&diff.ry_d);
+
+            // If either denominator is bad, fall back to zero differentials
+            if denom_x == 0.0 || denom_y == 0.0 {
+                self.dudx.set(0.0);
+                self.dvdx.set(0.0);
+                self.dudy.set(0.0);
+                self.dvdy.set(0.0);
+                self.dpdx.set(Vector3::zeros());
+                self.dpdy.set(Vector3::zeros());
+                return;
+            }
+
+            let tx = (-(n.dot(&rxo)) - d) / denom_x;
+            let ty = (-(n.dot(&ryo)) - d) / denom_y;
+
+            let px = diff.rx_o + diff.rx_d * tx;
+            let py = diff.ry_o + diff.ry_d * ty;
+
+            self.dpdx.set(px - p);
+            self.dpdy.set(py - p);
+
+            // Choose two dimensions to use for ray offset computation
+            let dim = if n.x.abs() > n.y.abs() && n.x.abs() > n.z.abs() {
+                [1, 2]
+            } else if n.y.abs() > n.z.abs() {
+                [0, 2]
+            } else {
+                [0, 1]
+            };
+
+            // Initialize A, Bx, and By matrices for offset computation
+            let a = [
+                [self.dpdu[dim[0]], self.dpdv[dim[0]]],
+                [self.dpdu[dim[1]], self.dpdv[dim[1]]],
+            ];
+
+            let bx = [px[dim[0]] - p[dim[0]], px[dim[1]] - p[dim[1]]];
+            let by = [py[dim[0]] - p[dim[0]], py[dim[1]] - p[dim[1]]];
+
+            let (dudx, dvdx) = solve_linear_system_2x2(a, bx).unwrap_or((0.0, 0.0));
+            let (dudy, dvdy) = solve_linear_system_2x2(a, by).unwrap_or((0.0, 0.0));
+
+            self.dudx.set(dudx);
+            self.dvdx.set(dvdx);
+            self.dudy.set(dudy);
+            self.dvdy.set(dvdy);
+        } else {
+            self.dudx.set(0.0);
+            self.dvdx.set(0.0);
+            self.dudy.set(0.0);
+            self.dvdy.set(0.0);
+            self.dpdx.set(Vector3::zeros());
+            self.dpdy.set(Vector3::zeros());
+        }
     }
     
     pub fn le(&self, _w: &Vector3) -> Spectrum {

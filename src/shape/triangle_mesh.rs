@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::Interaction, permute_p, permute_v, shape::{Shape, ShapeT}}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
+use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::Interaction, permute_p, permute_v, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
 
 #[derive(Debug)]
 pub struct TriangleMesh {
@@ -13,7 +13,7 @@ pub struct TriangleMesh {
     pub s: Vec<Vector3>,
     pub uv: Vec<Point2>,
     pub name: String,
-    // pub alpha_mask: Option<Arc<dyn Texture>>, TODO
+    pub alpha_mask: Option<Arc<dyn Texture<f32>>>,
 }
 
 impl TriangleMesh {
@@ -64,8 +64,8 @@ impl TriangleMesh {
             s: world_s,
             n: world_n,
             uv: world_uv,
-            name: name.unwrap_or("Default_Mesh".to_string())
-            // alpha_mask,
+            name: name.unwrap_or("Default_Mesh".to_string()),
+            alpha_mask: None
         }
     }
 

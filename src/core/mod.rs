@@ -14,6 +14,8 @@ pub mod filter;
 pub mod film;
 pub mod spectrum;
 pub mod image;
+pub mod bxdf;
+pub mod texture;
 
 pub use math::*;
 pub use geometry::*;

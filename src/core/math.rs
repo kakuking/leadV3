@@ -85,3 +85,53 @@ pub fn quadratic(a: f32, b: f32, c: f32, t0: &mut f32, t1: &mut f32) -> bool {
 
     true
 }
+
+pub fn cos_theta(w: &Vector3) -> f32 { w.z }
+pub fn cos2_theta(w: &Vector3) -> f32 { w.z * w.z }
+pub fn abs_cos_theta(w: &Vector3) -> f32 { w.z.abs() }
+pub fn sin2_theta(w: &Vector3) -> f32 { 0f32.max(1.0 - cos2_theta(w)) }
+pub fn sin_theta(w: &Vector3) -> f32 { sin2_theta(w).sqrt() }
+pub fn tan_theta(w: &Vector3) -> f32 { sin_theta(w) / cos_theta(w) }
+pub fn tan2_theta(w: &Vector3) -> f32 { sin2_theta(w) / cos2_theta(w) }
+pub fn cos_phi(w: &Vector3) -> f32 {
+    let sin_theta = sin_theta(w);
+    if sin_theta == 0.0 {
+        1.0
+    } else {
+        (w.x / sin_theta).clamp(-1.0, 1.0)
+    }
+}
+pub fn sin_phi(w: &Vector3) -> f32 {
+    let sin_theta = sin_theta(w);
+    if sin_theta == 0.0 {
+        0.0
+    } else {
+        (w.y / sin_theta).clamp(-1.0, 1.0)
+    }
+}
+pub fn cos2_phi(w: &Vector3) -> f32 { cos_phi(w) * cos_phi(w) }
+pub fn sin2_phi(w: &Vector3) -> f32 { sin_phi(w) * sin_phi(w) }
+pub fn cosd_phi(wa: &Vector3, wb: &Vector3) -> f32 {
+    let num = wa.x * wb.x + wa.y * wb.y;
+    let den = ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt();
+
+    (num / den).clamp(-1.0, 1.0)
+}
+
+pub fn solve_linear_system_2x2(a: [[f32; 2]; 2], b: [f32; 2]) -> Option<(f32, f32)> {
+    let det = a[0][0] * a[1][1] - a[0][1] * a[1][0];
+
+    // Same spirit as PBRT: reject nearly singular systems
+    if det.abs() < 1e-10 {
+        return None;
+    }
+
+    let x0 = ( b[0] * a[1][1] - b[1] * a[0][1]) / det;
+    let x1 = (-b[0] * a[1][0] + b[1] * a[0][0]) / det;
+
+    if x0.is_nan() || x1.is_nan() {
+        None
+    } else {
+        Some((x0, x1))
+    }
+}

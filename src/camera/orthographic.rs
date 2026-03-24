@@ -99,7 +99,7 @@ impl CameraT for OrthographicCamera {
 impl Printable for OrthographicCamera {
     fn to_string(&self) -> String {
         format!(
-            "Orthographi[\n
+            "Orthographic: [\n
             \tlens radius: {}\n
             \tfocal distance: {}\n
             ]",

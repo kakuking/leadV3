@@ -18,4 +18,6 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 - [x] Added Transform handling to scene
 - [x] Add Filters and Film 
 - [x] Added scene loading to filters and films
-- [ ] Fix Scene (mess rn)
+- [x] Added Lights and Point Lights
+- [x] Added Light loading to scene
+- [ ] Integrators to come and some sampling stuff I hope

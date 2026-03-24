@@ -121,6 +121,15 @@ impl Camera {
     }
 }
 
+impl Printable for Camera {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Orthographic(cam) => cam.to_string(),
+            _ => panic!("This camera type is not implemented")
+        }
+    }
+}
+
 pub trait CameraT: Manufacturable<Camera> + Printable {
     fn get_medium(&self) -> Option<Arc<Medium>>;
     fn get_shutter_open(&self) -> f32;
