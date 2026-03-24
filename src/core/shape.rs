@@ -2,7 +2,7 @@ use crate::{core::{Bounds3, Point2, Printable, Ray, Transform, Vector3, apply_tr
 
 use crate::shape::{Sphere};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Shape {
     Sphere(Sphere),
     Triangle(Triangle)

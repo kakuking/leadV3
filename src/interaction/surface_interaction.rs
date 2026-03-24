@@ -1,6 +1,6 @@
 use std::{cell::Cell, sync::Arc};
 
-use crate::core::{Normal3, Point2, Point3, Ray, Spectrum, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::{GeometricPrimitive, Primitive}, shape::Shape};
+use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::{GeometricPrimitive, Primitive}, shape::Shape, spectrum::Spectrum};
 
 pub struct Shading {
     pub n: Normal3,

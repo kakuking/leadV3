@@ -133,7 +133,7 @@ impl Printable for RayDifferential {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Bounds2 {
     pub p_min: Point2,
     pub p_max: Point2
@@ -217,6 +217,24 @@ impl Bounds2 {
     pub fn inside(&self, p: &Point2) -> bool {
         self.p_min.x < p.x && p.x < self.p_max.x &&
         self.p_min.y < p.y && p.y < self.p_max.y
+    }
+
+    pub fn inside_exclusive(&self, p: &Point2) -> bool {
+        p.x >= self.p_min.x && p.x < self.p_max.x &&
+        p.y >= self.p_min.y && p.y < self.p_max.y
+    }
+
+    pub fn intersect(&self, b: &Bounds2) -> Self {
+        let p_minx = self.p_min.x.max(b.p_min.x);
+        let p_miny = self.p_min.y.max(b.p_min.y);
+
+        let p_maxx = self.p_max.x.min(b.p_max.x);
+        let p_maxy = self.p_max.y.min(b.p_max.y);
+
+        Self {
+            p_min: Point2::new(p_minx, p_miny),
+            p_max: Point2::new(p_maxx, p_maxy),
+        }
     }
 }
 
@@ -344,6 +362,12 @@ impl Bounds3 {
         self.p_min.x < p.x && p.x < self.p_max.x &&
         self.p_min.y < p.y && p.y < self.p_max.y &&
         self.p_min.z < p.z && p.z < self.p_max.z
+    }
+
+    pub fn inside_exclusive(&self, p: &Point3) -> bool {
+        p.x >= self.p_min.x && p.x < self.p_max.x &&
+        p.y >= self.p_min.y && p.y < self.p_max.y &&
+        p.z >= self.p_min.z && p.z < self.p_max.z
     }
 
     pub fn union_p(&self, p: &Point3) -> Self {
@@ -665,4 +689,49 @@ pub fn look_at(eye: &Point3, target: &Point3, up: &Vector3) -> Transform {
     m[(0, 3)] = eye.x;     m[(1, 3)] = eye.y;      m[(2, 3)] = eye.z;
 
     Transform::from_matrix_unchecked(m)
+}
+
+trait FloorCeil {
+    fn floor(self) -> Self;
+    fn ceil(self) -> Self;
+}
+
+impl FloorCeil for Vector3 {
+    fn floor(self) -> Self {
+        self.map(|x| x.floor())
+    }
+
+    fn ceil(self) -> Self {
+        self.map(|x| x.ceil())
+    }
+}
+
+impl FloorCeil for Point3 {
+    fn floor(self) -> Self {
+        self.map(|x| x.floor())
+    }
+
+    fn ceil(self) -> Self {
+        self.map(|x| x.ceil())
+    }
+}
+
+impl FloorCeil for Vector2 {
+    fn floor(self) -> Self {
+        self.map(|x| x.floor())
+    }
+
+    fn ceil(self) -> Self {
+        self.map(|x| x.ceil())
+    }
+}
+
+impl FloorCeil for Point2 {
+    fn floor(self) -> Self {
+        self.map(|x| x.floor())
+    }
+
+    fn ceil(self) -> Self {
+        self.map(|x| x.ceil())
+    }
 }

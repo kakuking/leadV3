@@ -1,7 +1,8 @@
-use std::{cell::Cell, sync::Arc};
+use std::sync::Arc;
 
-use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Spectrum, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, Film, ProjectedCameraBase}, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, translation}, loader::{Manufacturable, Parameters}};
+use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, spectrum::Spectrum, translation}, loader::{LeadObject, Manufacturable, Parameters}};
 
+#[derive(Clone)]
 pub struct OrthographicCamera {
     pub base: ProjectedCameraBase,
 
@@ -52,7 +53,11 @@ impl CameraT for OrthographicCamera {
     fn get_shutter_close(&self) -> f32 { self.base.shutter_close }
     fn get_film(&self) -> Arc<Film> { self.base.film.clone() }
     fn get_camera_to_world(&self) -> Transform { self.base.camera_to_world }
-    
+
+    fn set_film(&mut self, film: Arc<Film>) {
+        self.base.set_film(film);
+    }
+
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32 {
         let p_film = Point3::new(sample.p_film.x, sample.p_film.y, 0.0);
         let p_camera = self.base.raster_to_camera.transform_point(&p_film);
@@ -130,11 +135,11 @@ impl Manufacturable<Camera> for OrthographicCamera {
         let lens_radius    = params.get_float("lens_radius",    Some(0.0));
         let focal_distance = params.get_float("focal_distance", Some(1e6));
 
-        let res = params.get_point2("resolution", Some(Point2::new(1000.0, 1000.0)));
+        let film = match params.get_lead_object("film") {
+            Some(LeadObject::Film(f)) => Arc::clone(f),
+            _ => panic!("Camera requires a nested film"),
+        };
 
-        let film = Arc::new(
-            Film::init(res)
-        );
 
         // film and medium would typically come from the scene, not params
         // pass them in or use defaults

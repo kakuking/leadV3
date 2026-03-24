@@ -16,5 +16,6 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 - [x] Added Camera Enum and Orthographic Camera
 - [x] Added Sampler Enum and Stratified Sampler
 - [x] Added Transform handling to scene
-- [ ] Add Film and Whatnot
+- [x] Add Filters and Film 
+- [x] Added scene loading to filters and films
 - [ ] Fix Scene (mess rn)

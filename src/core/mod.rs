@@ -10,11 +10,13 @@ pub mod material;
 pub mod camera;
 pub mod light;
 pub mod sampler;
+pub mod filter;
+pub mod film;
+pub mod spectrum;
+pub mod image;
 
 pub use math::*;
 pub use geometry::*;
-
-pub type Spectrum = nalgebra::Vector3<f32>;
 
 pub trait Printable {
     fn to_string(&self) -> String;

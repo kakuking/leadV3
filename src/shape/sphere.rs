@@ -1,6 +1,6 @@
 use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, gamma, interaction::Interaction, quadratic, shape::{Shape, ShapeT}, translation}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sphere {
     object_to_world: Transform,
     world_to_object: Transform,
@@ -172,8 +172,6 @@ impl Manufacturable<Shape> for Sphere {
         let phi_max: f32 = param.get_float("phi_max", Some(360.0));
 
         let ret = Self::init(object_to_world, world_to_object, reverse_orientation, radius, z_min, z_max, phi_max);
-
-        println!("{}", ret.to_string());
 
         Shape::Sphere(
             ret

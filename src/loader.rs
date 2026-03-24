@@ -1,11 +1,12 @@
-use std::{collections::HashMap};
+use std::{collections::HashMap, sync::Arc};
 
 use roxmltree::Document;
 
 use crate::core::{
-    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
+    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, film::Film, filter::Filter, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
 };
 
+#[derive(Clone)]
 pub enum ParamVal {
     Float(f32),
     Int(i32),
@@ -16,6 +17,7 @@ pub enum ParamVal {
     Vec3(Vector3),
     Pt3(Point3),
     AngleAxis(AngleAxis),
+    LeadObject(LeadObject)
 }
 
 impl ParamVal {
@@ -66,6 +68,10 @@ impl ParamVal {
     pub fn new_angle_axis(key: &str, value: &str) -> Self {
         let p = Self::parse_floats(key, value, 4);
         Self::AngleAxis(AngleAxis::new(p[0], p[1], p[2], p[3]))
+    }
+
+    pub fn new_object(obj: LeadObject) -> Self {
+        Self::LeadObject(obj)
     }
 
     fn parse_floats(key: &str, value: &str, expected: usize) -> Vec<f32> {
@@ -135,6 +141,24 @@ impl Parameters {
 
         let transform = rotate_angle_axis(t);
         self.update_transform(transform);
+    }
+    
+    pub fn add_lead_object(&mut self, key: String, obj: LeadObject) {
+        self.map.insert(key, ParamVal::LeadObject(obj));
+    }
+
+    pub fn get_lead_object(&self, key: &str) -> Option<&LeadObject> {
+        match self.map.get(key) {
+            Some(ParamVal::LeadObject(obj)) => Some(obj),
+            _ => None,
+        }
+    }
+
+    pub fn get_lead_object_cloned(&self, key: &str) -> Option<LeadObject> {
+        match self.map.get(key) {
+            Some(ParamVal::LeadObject(obj)) => Some(obj.clone()),
+            _ => None,
+        }
     }
 
     pub fn update_transform(&mut self, t: Transform) {
@@ -264,37 +288,67 @@ pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
         let tag = node.tag_name().name();
         let obj_type = node.attribute("type").unwrap_or("");
 
-        let mut params = Parameters::new();
-
-        for param in node.children().filter(|n| n.is_element()) {
-            let p_tag = param.tag_name().name();
-            let p_name = param.attribute("name").unwrap_or("");
-            let p_value = param.attribute("value").unwrap_or("");
-
-            match p_tag {
-                "int"    => params.add_int(p_name.to_string(), p_value.to_string()),
-                "float"    => params.add_float(p_name.to_string(), p_value.to_string()),
-                "bool"     => params.add_bool(p_name.to_string(), p_value.to_string()),
-                "string"   => params.add_string(p_name.to_string(), p_value.to_string()),
-                "vector2"  => params.add_vector2(p_name.to_string(), p_value.to_string()),
-                "vector3"  => params.add_vector3(p_name.to_string(), p_value.to_string()),
-                "point2"   => params.add_point2(p_name.to_string(), p_value.to_string()),
-                "point3"   => params.add_point3(p_name.to_string(), p_value.to_string()),
-                "angleAxis" => params.add_angle_axis(p_name.to_string(), p_value.to_string()),
-                "scale"    => params.add_scaling(p_value.to_string()),
-                "translate"    => params.add_translation(p_value.to_string()),
-                "rotate"    => params.add_rotation(p_value.to_string()),
-                _ => {
-                    eprintln!("Unknown parameter found: {}", p_tag);
-                    continue;
-                }
-            }
-        }
+        let params = parse_parameters_for_node(node, registry);
 
         registry.add_to_scene(&mut scene, tag.to_string(), obj_type.to_string(), params);
     }
 
     Some(scene)
+}
+
+fn parse_parameters_for_node(node: roxmltree::Node, registry: &Registry) -> Parameters {
+    let mut params = Parameters::new();
+
+    for param in node.children().filter(|n| n.is_element()) {
+        let p_tag = param.tag_name().name();
+        let p_name = param.attribute("name").unwrap_or("");
+        let p_value = param.attribute("value").unwrap_or("");
+        let p_type = param.attribute("type").unwrap_or("");
+
+        match p_tag {
+            "int"       => params.add_int(p_name.to_string(), p_value.to_string()),
+            "float"     => params.add_float(p_name.to_string(), p_value.to_string()),
+            "bool"      => params.add_bool(p_name.to_string(), p_value.to_string()),
+            "string"    => params.add_string(p_name.to_string(), p_value.to_string()),
+            "vector2"   => params.add_vector2(p_name.to_string(), p_value.to_string()),
+            "vector3"   => params.add_vector3(p_name.to_string(), p_value.to_string()),
+            "point2"    => params.add_point2(p_name.to_string(), p_value.to_string()),
+            "point3"    => params.add_point3(p_name.to_string(), p_value.to_string()),
+            "angleAxis" => params.add_angle_axis(p_name.to_string(), p_value.to_string()),
+            "scale"     => params.add_scaling(p_value.to_string()),
+            "translate" => params.add_translation(p_value.to_string()),
+            "rotate"    => params.add_rotation(p_value.to_string()),
+
+            _ => {
+                // Treat as nested lead object
+                let child_params = parse_parameters_for_node(param, registry);
+                let lead_object = registry.create_lead_object(
+                    p_tag.to_string(),
+                    p_type.to_string(),
+                    child_params,
+                );
+
+                let key = if !p_name.is_empty() {
+                    p_name.to_string()
+                } else {
+                    p_tag.to_string()
+                };
+
+                params.add_lead_object(key, lead_object);
+            }
+        }
+    }
+
+    params
+}
+
+#[derive(Clone)]
+pub enum LeadObject {
+    Camera(Arc<Camera>),
+    Shape(Vec<Shape>),
+    Sampler(Arc<Sampler>),
+    Filter(Arc<Filter>),
+    Film(Arc<Film>)
 }
 
 pub trait Manufacturable<T> {
@@ -307,7 +361,9 @@ pub type MultiFactoryFn<T> = Box<dyn Fn(Parameters) -> Vec<T>>;
 pub struct Registry {
     pub shape_factories: HashMap<String, MultiFactoryFn<Shape>>,
     pub camera_factories: HashMap<String, FactoryFn<Camera>>,
-    pub sampler_factories: HashMap<String, FactoryFn<Sampler>>
+    pub sampler_factories: HashMap<String, FactoryFn<Sampler>>,
+    pub filter_factories: HashMap<String, FactoryFn<Filter>>,
+    pub film_factories: HashMap<String, FactoryFn<Film>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -316,7 +372,9 @@ impl Registry {
         Self {
             shape_factories: HashMap::new(),
             camera_factories: HashMap::new(),
-            sampler_factories: HashMap::new()
+            sampler_factories: HashMap::new(),
+            filter_factories: HashMap::new(),
+            film_factories: HashMap::new(),
         }
     }
 
@@ -350,6 +408,44 @@ impl Registry {
         match self.sampler_factories.get(&t) {
             Some(s) => s(parameters),
             _ => panic!("NO SHAPE FOUND OF TYPE {}", t),
+        }
+    }
+
+    pub fn register_filter(&mut self, t: String, function: FactoryFn<Filter>) {
+        self.filter_factories.insert(t, function);
+    }
+
+    fn create_filter(&self, t: String, parameters: Parameters) -> Filter {
+        match self.filter_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO FILTER FOUND OF TYPE {}", t),
+        }
+    }
+
+    pub fn register_film(&mut self, t: String, function: FactoryFn<Film>) {
+        self.film_factories.insert(t, function);
+    }
+
+    fn create_film(&self, t: String, parameters: Parameters) -> Film {
+        match self.film_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO FILM FOUND OF TYPE {}", t),
+        }
+    }
+
+    pub fn create_lead_object(
+        &self,
+        object: String,
+        object_type: String,
+        parameters: Parameters,
+    ) -> LeadObject {
+        match object.as_str() {
+            "shape" => LeadObject::Shape(self.create_shape(object_type, parameters)),
+            "camera" => LeadObject::Camera(Arc::new(self.create_camera(object_type, parameters))),
+            "sampler" => LeadObject::Sampler(Arc::new(self.create_sampler(object_type, parameters))),
+            "filter" => LeadObject::Filter(Arc::new(self.create_filter(object_type, parameters))),
+            "film" => LeadObject::Film(Arc::new(self.create_film(object_type, parameters))),
+            _ => panic!("No lead object found with name {}", object),
         }
     }
 

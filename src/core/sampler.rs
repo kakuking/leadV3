@@ -1,5 +1,6 @@
 use crate::{core::{PI, Point2, Printable, Vector2, camera::CameraSample}, loader::Manufacturable, sampler::stratified_sampler::StratifiedSampler};
 
+#[derive(Clone)]
 pub enum Sampler {
     Stratified(StratifiedSampler)
 }
@@ -162,6 +163,7 @@ impl Sampler {
     }
 }
 
+#[derive(Clone)]
 pub struct SamplerBase {
     pub samples_per_pixel: usize,
 

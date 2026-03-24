@@ -1,24 +1,8 @@
 use std::sync::Arc;
 
-use crate::{camera::orthographic::OrthographicCamera, core::{Bounds2, Point2, Printable, Ray, RayDifferential, Spectrum, Transform, Vector3, interaction::Interaction, light::VisibilityTester, medium::Medium, scaling, translation}, loader::Manufacturable};
+use crate::{camera::orthographic::OrthographicCamera, core::{Bounds2, Point2, Printable, Ray, RayDifferential, Transform, Vector3, film::Film, interaction::Interaction, light::VisibilityTester, medium::Medium, scaling, spectrum::Spectrum, translation}, loader::Manufacturable};
 
-pub struct Film {
-    pub full_resolution: Point2
-}
 
-impl Film {
-    pub fn new() -> Self {
-        Self {
-            full_resolution: Point2::new(1.0, 1.0)
-        }
-    }
-
-    pub fn init(full_resolution: Point2) -> Self {
-        Self {
-            full_resolution
-        }
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct CameraSample {
@@ -27,61 +11,79 @@ pub struct CameraSample {
     pub time: f32
 }
 
+#[derive(Clone)]
 pub enum Camera {
-    Orthographic(OrthographicCamera)
+    Orthographic(OrthographicCamera),
+    Empty,
 }
 
 impl Camera {
     pub fn get_medium(&self) -> Option<Arc<Medium>> {
         match self {
-            Self::Orthographic(cam) => cam.get_medium()
+            Self::Orthographic(cam) => cam.get_medium(),
+            _ => panic!("This camera type is not implemented")
         }
     }
     pub fn get_shutter_open(&self) -> f32 {
         match self {
-            Self::Orthographic(cam) => cam.get_shutter_open()
+            Self::Orthographic(cam) => cam.get_shutter_open(),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
     pub fn get_shutter_close(&self) -> f32 {
         match self {
-            Self::Orthographic(cam) => cam.get_shutter_close()
+            Self::Orthographic(cam) => cam.get_shutter_close(),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
     pub fn get_film(&self) -> Arc<Film> {
         match self {
-            Self::Orthographic(cam) => cam.get_film()
+            Self::Orthographic(cam) => cam.get_film(),
+            _ => panic!("This camera type is not implemented")
         }
+    }
+
+    pub fn set_film(&mut self, film: Arc<Film>) {
+        match self {
+            Self::Orthographic(cam) => cam.set_film(film),
+            _ => panic!("This camera type is not implemented")
+        };
     }
 
     pub fn get_camera_to_world(&self) -> Transform {
         match self {
-            Self::Orthographic(cam) => cam.get_camera_to_world()
+            Self::Orthographic(cam) => cam.get_camera_to_world(),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
     pub fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32 {
         match self {
-            Self::Orthographic(cam) => cam.generate_ray(sample, ray)
+            Self::Orthographic(cam) => cam.generate_ray(sample, ray),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
     pub fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum {
         match self {
-            Self::Orthographic(cam) => cam.we(ray, p_raster2)
+            Self::Orthographic(cam) => cam.we(ray, p_raster2),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
     pub fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
         match self {
-            Self::Orthographic(cam) => cam.pdf_we(ray, pdf_pos, pdf_dir)
+            Self::Orthographic(cam) => cam.pdf_we(ray, pdf_pos, pdf_dir),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
     pub fn sample_wi(&self, reference: &Interaction, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum {
         match self {
-            Self::Orthographic(cam) => cam.sample_wi(reference, u, wi, pdf, p_raster, vis)
+            Self::Orthographic(cam) => cam.sample_wi(reference, u, wi, pdf, p_raster, vis),
+            _ => panic!("This camera type is not implemented")
         }
     }
 
@@ -125,6 +127,7 @@ pub trait CameraT: Manufacturable<Camera> + Printable {
     fn get_shutter_close(&self) -> f32;
     fn get_film(&self) -> Arc<Film>;
     fn get_camera_to_world(&self) -> Transform;
+    fn set_film(&mut self, film: Arc<Film>);
     
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32;
     fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum;
@@ -133,6 +136,7 @@ pub trait CameraT: Manufacturable<Camera> + Printable {
 }
 
 
+#[derive(Clone)]
 pub struct ProjectedCameraBase {
     pub camera_to_screen: Transform,
     pub raster_to_camera: Transform,
@@ -193,6 +197,10 @@ impl ProjectedCameraBase {
             film,
             medium
         }
+    }
+
+    pub fn set_film(&mut self, film: Arc<Film>) {
+        self.film = film;
     }
 }
 

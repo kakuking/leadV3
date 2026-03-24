@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
-use crate::{camera::orthographic::OrthographicCamera, core::{camera::Camera, sampler::Sampler, shape::Shape}, loader::{Manufacturable, Parameters}, sampler::stratified_sampler::StratifiedSampler};
+use crate::{camera::orthographic::OrthographicCamera, core::{camera::Camera, filter::Filter, sampler::Sampler, shape::Shape}, filter::box_filter::BoxFilter, loader::{Manufacturable, Parameters}, sampler::stratified_sampler::StratifiedSampler};
 
 pub struct Scene {
+    pub filters: Vec<Filter>,
+
     pub shapes: Vec<Arc<Shape>>,
     pub sampler: Sampler,
     pub camera: Camera
@@ -10,14 +12,17 @@ pub struct Scene {
 
 impl Scene {
     pub fn new() -> Self {
-        let camera = OrthographicCamera::create_from_parameters(
-            Parameters::new()
-            );
+        let camera = Camera::Empty;
         let sampler = StratifiedSampler::create_from_parameters(
             Parameters::new()
         );
-
+        let filter = Filter::Bx(
+            BoxFilter::new()
+        );
+        
         Self {
+            filters: vec![filter],
+
             shapes: Vec::new(),
             camera,
             sampler

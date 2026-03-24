@@ -4,6 +4,9 @@ use std::{fs::File, sync::Arc};
 use crate::camera::orthographic::OrthographicCamera;
 use crate::core::Point2;
 use crate::core::camera::{CameraSample};
+use crate::core::film::Film;
+use crate::filter::box_filter::BoxFilter;
+use crate::filter::triangle_filter::TriangleFilter;
 use crate::sampler::stratified_sampler::StratifiedSampler;
 use crate::{core::{INFINITY, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionT, medium::MediumInterface, primitive::{GeometricPrimitive, Primitive}, scene::Scene, shape::Shape, translation}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Registry}, shape::{Sphere, bounding_volume_heirarchy::{BVHAccel, SplitMethod}, triangle_mesh::TriangleMesh}};
 
@@ -14,6 +17,7 @@ pub mod shape;
 pub mod light;
 pub mod camera;
 pub mod sampler;
+pub mod filter;
 
 pub mod loader;
 
@@ -326,45 +330,55 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
 
 fn main() {
     let mut registry = Registry::new();
+
     registry.register_shape(
         "sphere".to_string(),
-        Box::new(
-            |params| {
-                vec![Sphere::create_from_parameters(params)]
-            }
-        ),
+        Box::new(|params| {
+            vec![Sphere::create_from_parameters(params)]
+        }),
     );
 
     registry.register_shape(
         "mesh".to_string(),
-        Box::new(
-            |params| {
-                TriangleMesh::create_from_parameters(params)
-            }
-        )
+        Box::new(|params| {
+            TriangleMesh::create_from_parameters(params)
+        }),
     );
 
     registry.register_camera(
-        "orthographic".to_string(), 
-        Box::new(
-            |params| {
-                OrthographicCamera::create_from_parameters(params)
-            }
-        )
+        "orthographic".to_string(),
+        Box::new(|params| {
+            OrthographicCamera::create_from_parameters(params)
+        }),
     );
 
     registry.register_sampler(
-        "stratified".to_string(), 
-        Box::new(
-            |params| {
-                StratifiedSampler::create_from_parameters(params)
-            }
-        )
+        "stratified".to_string(),
+        Box::new(|params| {
+            StratifiedSampler::create_from_parameters(params)
+        }),
     );
 
-    // load_scene_and_test(&registry);
-    load_scene_and_render_hit_ppm(&registry);
-    // load_scene_and_render_hit_ppm_bruteforce(&registry);
+    registry.register_filter(
+        "box".to_string(),
+        Box::new(|params| {
+            BoxFilter::create_from_parameters(params)
+        }),
+    );
 
-    // benchmark_bruteforce_vs_bvh(1000, 10, 10);
+    registry.register_filter(
+        "triangle".to_string(),
+        Box::new(|params| {
+            TriangleFilter::create_from_parameters(params)
+        }),
+    );
+
+    registry.register_film(
+        "film".to_string(),
+        Box::new(|params| {
+            Film::create_from_parameters(params)
+        }),
+    );
+
+    load_scene_and_render_hit_ppm(&registry);
 }

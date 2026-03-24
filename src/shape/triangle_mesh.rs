@@ -183,7 +183,7 @@ impl TriangleMesh {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Triangle {
     // object_to_world: Arc<Transform>,
     // world_to_object: Arc<Transform>,
