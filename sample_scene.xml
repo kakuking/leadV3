@@ -1,4 +1,6 @@
 <scene>
+    <integrator type="direct"/>
+
     <sampler type="stratified">
         <int name="x_pixel_samples" value="2"/>
         <int name="y_pixel_samples" value="2"/>
@@ -14,7 +16,7 @@
 
         <film type="film" name="film">
             <point2 name="resolution" value="512, 512"/>
-            <string name="filename" value="output.exr"/>
+            <string name="filename" value="output/its.png"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>
 
@@ -34,8 +36,16 @@
         <string name="filename" value="monkey.obj"/>
         
         <scale value="0.5, 0.5, 0.5"/>
-        <rotate value="0, 1, 0, 90"/>
+        <rotate value="0, 1, 0, 30"/>
         <translate value="2, 0, 0"/>
+    </shape>
+
+    <shape type="mesh">
+        <string name="filename" value="monkey.obj"/>
+        
+        <scale value="0.7, 0.7, 0.7"/>
+        <rotate value="1, 1, 1, 45"/>
+        <translate value="-2, 0, 0"/>
     </shape>
 
     <light type="point"/>

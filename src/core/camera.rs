@@ -11,7 +11,7 @@ pub struct CameraSample {
     pub time: f32
 }
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub enum Camera {
     Orthographic(OrthographicCamera),
     Empty,
@@ -38,18 +38,11 @@ impl Camera {
         }
     }
 
-    pub fn get_film(&self) -> Arc<Film> {
+    pub fn get_film(&mut self) -> &mut Film {
         match self {
             Self::Orthographic(cam) => cam.get_film(),
             _ => panic!("This camera type is not implemented")
         }
-    }
-
-    pub fn set_film(&mut self, film: Arc<Film>) {
-        match self {
-            Self::Orthographic(cam) => cam.set_film(film),
-            _ => panic!("This camera type is not implemented")
-        };
     }
 
     pub fn get_camera_to_world(&self) -> Transform {
@@ -134,9 +127,8 @@ pub trait CameraT: Manufacturable<Camera> + Printable {
     fn get_medium(&self) -> Option<Arc<Medium>>;
     fn get_shutter_open(&self) -> f32;
     fn get_shutter_close(&self) -> f32;
-    fn get_film(&self) -> Arc<Film>;
+    fn get_film(&mut self) -> &mut Film;
     fn get_camera_to_world(&self) -> Transform;
-    fn set_film(&mut self, film: Arc<Film>);
     
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32;
     fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum;
@@ -145,7 +137,7 @@ pub trait CameraT: Manufacturable<Camera> + Printable {
 }
 
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub struct ProjectedCameraBase {
     pub camera_to_screen: Transform,
     pub raster_to_camera: Transform,
@@ -157,7 +149,7 @@ pub struct ProjectedCameraBase {
     pub camera_to_world: Transform,
     pub shutter_open: f32,
     pub shutter_close: f32,
-    pub film: Arc<Film>,
+    pub film: Film,
     pub medium: Option<Arc<Medium>> 
 }
 
@@ -170,7 +162,7 @@ impl ProjectedCameraBase {
         shutter_close: f32,
         lens_radius: f32,
         focal_distance: f32,
-        film: Arc<Film>,
+        film: Film,
         medium: Option<Arc<Medium>> 
     ) -> Self {
         let mut screen_to_raster = scaling(Vector3::new(
@@ -208,7 +200,7 @@ impl ProjectedCameraBase {
         }
     }
 
-    pub fn set_film(&mut self, film: Arc<Film>) {
+    pub fn set_film(&mut self, film: Film) {
         self.film = film;
     }
 }

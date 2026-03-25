@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use atomic_float::AtomicF32;
 
-use crate::core::{Bounds2, Point2, Vector2, filter::Filter, image::write_image, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}};
+use crate::core::{Bounds2, Point2, Vector2, filter::Filter, image::{write_image, write_ppm}, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}};
 
 use std::sync::atomic::Ordering;
 
@@ -236,7 +236,7 @@ impl Film {
         )
     }
 
-    pub fn get_film_tile(&mut self, sample_bounds: Bounds2) -> Arc<FilmTile> {
+    pub fn get_film_tile(&mut self, sample_bounds: &Bounds2) -> FilmTile {
         let half_pixel = Vector2::new(0.5, 0.5);
         let float_bounds = sample_bounds.clone();
 
@@ -245,13 +245,11 @@ impl Film {
 
         let tile_pixel_bounds = Bounds2::init_two(&p0, &p1).intersect(&self.cropped_pixel_bounds);
 
-        Arc::new(
-            FilmTile::init(
-                tile_pixel_bounds,
-                self.filter.get_radius(),
-                self.filter_table.clone(),
-                FILTER_TABLE_WIDTH
-            )
+        FilmTile::init(
+            tile_pixel_bounds,
+            self.filter.get_radius(),
+            self.filter_table.clone(),
+            FILTER_TABLE_WIDTH
         )
     }
 
@@ -364,10 +362,23 @@ impl Film {
             offset += 1;
         }}
 
-        match write_image(&self.filename, &rgb, self.cropped_pixel_bounds.clone() , self.full_resolution) {
-            Ok(_) => {println!("Successfuly saved image to {}", &self.filename)},
-            _ => {println!("Could not save image to {}", &self.filename)}
-        };
+        // match write_image(&self.filename, &rgb, self.cropped_pixel_bounds.clone() , self.full_resolution) {
+        //     Ok(_) => {println!("Successfuly saved image to {}", &self.filename)},
+        //     _ => {println!("Could not save image to {}", &self.filename)}
+        // };
+
+        let width = (self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x) as usize;
+        let height = (self.cropped_pixel_bounds.p_max.y - self.cropped_pixel_bounds.p_min.y) as usize;
+
+        // match write_ppm(&self.filename, &rgb, width, height) {
+        //     Ok(_) => println!("Successfully saved image to {}", &self.filename),
+        //     Err(e) => println!("Could not save image to {}: {}", &self.filename, e),
+        // }
+
+        match write_image(&self.filename, &rgb, self.cropped_pixel_bounds.clone(), self.full_resolution) {
+            Ok(_) => println!("Successfully saved image to {}", &self.filename),
+            Err(_) => println!("Could not save image to {}", &self.filename),
+        }
     }
 
     pub fn clear(&mut self) {
@@ -400,6 +411,8 @@ use crate::loader::{LeadObject, Manufacturable, Parameters};
 
 impl Manufacturable<Film> for Film {
     fn create_from_parameters(params: Parameters) -> Film {
+        let mut params = params;
+
         let full_resolution =
             params.get_point2("resolution", Some(Point2::new(1000.0, 1000.0)));
 
@@ -407,7 +420,7 @@ impl Manufacturable<Film> for Film {
             params.get_float("diagonal", Some(35.0));
 
         let filename =
-            params.get_string("filename", Some("output.exr".to_string()));
+            params.get_string("filename", Some("output.ppm".to_string()));
 
         let scale =
             params.get_float("scale", Some(1.0));
@@ -424,7 +437,7 @@ impl Manufacturable<Film> for Film {
         );
 
         let filter = match params.get_lead_object("filter") {
-            Some(LeadObject::Filter(f)) => Arc::clone(f),
+            Some(LeadObject::Filter(f)) => f,
             Some(_) => panic!("Parameter 'filter' exists but is not a filter"),
             None => panic!("Film requires a nested filter"),
         };
@@ -432,7 +445,7 @@ impl Manufacturable<Film> for Film {
         Film::init(
             full_resolution,
             crop_window,
-            filter,
+            Arc::new(filter),
             diagonal,
             filename,
             scale,

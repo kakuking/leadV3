@@ -9,6 +9,7 @@ pub enum TransportMode {
 
 #[derive(Debug, Clone)]
 pub enum Interaction {
+    Base(InteractionBase),
     Surface(SurfaceInteraction),
     // Medium(MediumInteraction)
 }
@@ -16,37 +17,44 @@ pub enum Interaction {
 impl Interaction {
     pub fn get_base(&self) -> &InteractionBase {
         match self {
-            Self::Surface(s) => s.get_base()
+            Self::Surface(s) => s.get_base(),
+            Self::Base(s) => s
         }
     }
     pub fn get_p(&self) -> &Point3 {
         match self {
-            Self::Surface(s) => s.get_p()
+            Self::Surface(s) => s.get_p(),
+            Self::Base(s) => &s.p
         }
     }
     pub fn get_time(&self) -> &f32 {
         match self {
-            Self::Surface(s) => s.get_time()
+            Self::Surface(s) => s.get_time(),
+            Self::Base(s) => &s.time
         }
     }
     pub fn get_p_error(&self) -> &Vector3 {
         match self {
-            Self::Surface(s) => s.get_p_error()
+            Self::Surface(s) => s.get_p_error(),
+            Self::Base(s) => &s.p_error
         }
     }
     pub fn get_wo(&self) -> &Vector3 {
         match self {
-            Self::Surface(s) => s.get_wo()
+            Self::Surface(s) => s.get_wo(),
+            Self::Base(s) => &s.wo
         }
     }
     pub fn get_n(&self) -> &Normal3 {
         match self {
-            Self::Surface(s) => s.get_n()
+            Self::Surface(s) => s.get_n(),
+            Self::Base(s) => &s.n
         }
     }
     pub fn get_medium_interface(&self) -> &MediumInterface {
         match self {
-            Self::Surface(s) => s.get_medium_interface()
+            Self::Surface(s) => s.get_medium_interface(),
+            Self::Base(s) => &s.medium_interface
         }
     }
 
@@ -65,27 +73,32 @@ impl Interaction {
 
     pub fn get_medium(&self) -> Option<Arc<Medium>> {
         match self {
-            Self::Surface(s) => s.get_medium()
+            Self::Surface(s) => s.get_medium(),
+            Self::Base(s) => s.get_medium()
         }
     }
     pub fn get_medium_facing_vector(&self, w: &Vector3) ->Option<Arc<Medium>> {
         match self {
-            Self::Surface(s) => s.get_medium_facing_vector(w)
+            Self::Surface(s) => s.get_medium_facing_vector(w),
+            Self::Base(s) => s.get_medium_facing_vector(w)
         }
     }
     pub fn spawn_ray(&self, d: &Vector3) -> Ray {
         match self {
-            Self::Surface(s) => s.spawn_ray(d)
+            Self::Surface(s) => s.spawn_ray(d),
+            Self::Base(s) => s.spawn_ray(d)
         }
     }
     pub fn spawn_ray_to(&self, p2: Point3) -> Ray {
         match self {
-            Self::Surface(s) => s.spawn_ray_to(p2)
+            Self::Surface(s) => s.spawn_ray_to(p2),
+            Self::Base(s) => s.spawn_ray_to(p2)
         }
     }
     pub fn spawn_ray_to_interaction(&self, it: &InteractionBase) -> Ray {
         match self {
-            Self::Surface(s) => s.spawn_ray_to_interaction(it)
+            Self::Surface(s) => s.spawn_ray_to_interaction(it),
+            Self::Base(s) => s.spawn_ray_to_interaction(it)
         }
     }
 }

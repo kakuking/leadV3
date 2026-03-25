@@ -98,10 +98,88 @@ impl BSDF {
         f
     }
 
-    pub fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: &mut BxDFType, flags: Option<BxDFType>) -> Spectrum {
+    pub fn sample_f(
+        &self,
+        wo_world: &Vector3,
+        wi_world: &mut Vector3,
+        u: &Point2,
+        pdf: &mut f32,
+        typ: &mut BxDFType,
+        flags: Option<BxDFType>,
+    ) -> Spectrum {
         let flags = flags.unwrap_or(BxDFType::BSDF_ALL);
-        
-        panic!("BSDF::sample_f")
+
+        let matching_comps = self.num_components(flags);
+        if matching_comps == 0 {
+            *pdf = 0.0;
+            return Spectrum::zeros();
+        }
+
+        let comp = ((u[0] * matching_comps as f32).floor() as usize).min(matching_comps - 1);
+
+        // Choose which BxDF to sample
+        let mut chosen: Option<(usize, &BxDF)> = None;
+        let mut count = comp;
+
+        for i in 0..self.n_bxdfs {
+            if self.bxdfs[i].matches_flags(flags) {
+                if count == 0 {
+                    chosen = Some((i, &self.bxdfs[i]));
+                    break;
+                }
+                count -= 1;
+            }
+        }
+
+        let (cur_bxdf_idx, cur_bxdf) = chosen.expect("matching_comps > 0 but no matching BxDF found");
+
+        // Remap sample to [0,1)^2 for chosen component
+        let u_remapped = Point2::new(u[0] * matching_comps as f32 - comp as f32, u[1]);
+
+        // Sample chosen BxDF
+        let wo = self.world_to_local(*wo_world);
+        let mut wi = Vector3::zeros();
+        *pdf = 0.0;
+
+        *typ = cur_bxdf.get_type();
+        let mut f = cur_bxdf.sample_f(&wo, &mut wi, &u_remapped, pdf, Some(*typ));
+
+        if *pdf == 0.0 {
+            return Spectrum::zeros();
+        }
+
+        *wi_world = self.local_to_world(&wi);
+
+        // Compute overall PDF with all matching BxDFs
+        if !cur_bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps > 1 {
+            for i in 0..self.n_bxdfs {
+                if i != cur_bxdf_idx && self.bxdfs[i].matches_flags(flags) {
+                    *pdf += self.bxdfs[i].pdf(&wo, &wi);
+                }
+            }
+        }
+
+        if matching_comps > 1 {
+            *pdf /= matching_comps as f32;
+        }
+
+        // Compute value of BSDF for sampled direction
+        if !cur_bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps > 1 {
+            let reflect = wi_world.dot(&self.ng) * wo_world.dot(&self.ng) > 0.0;
+            f = Spectrum::zeros();
+
+            for i in 0..self.n_bxdfs {
+                if self.bxdfs[i].matches_flags(flags)
+                    && ((reflect && self.bxdfs[i].get_type().contains(BxDFType::BSDF_REFLECTION))
+                        || (!reflect
+                            && self.bxdfs[i].get_type().contains(BxDFType::BSDF_TRANSMISSION)))
+                {
+                    f += self.bxdfs[i].f(&wo, &wi);
+                }
+            }
+        }
+
+        f
     }
 
     pub fn rho(

@@ -83,10 +83,17 @@ impl Shape {
     }
 
     pub fn pdf_interaction(&self, re: &Interaction, wi: &Vector3) -> f32 {
-        match self {
-            Self::Sphere(s) => s.pdf_interaction(re, wi),
-            Self::Triangle(s) => s.pdf_interaction(re, wi)
+        let ray = re.spawn_ray(wi);
+        let mut t_hit = 0.0;
+        let mut isect_light = SurfaceInteraction::new();
+
+        if !self.intersect(&ray, &mut t_hit, &mut isect_light, Some(false)) {
+            return 0.0;
         }
+
+        let pdf = (re.get_p() - isect_light.get_p()).norm_squared() / (isect_light.get_n().dot(&(-wi)).abs() * self.area());
+
+        pdf
     }
 }
 

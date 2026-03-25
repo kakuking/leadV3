@@ -2,6 +2,7 @@ use crate::{core::{PI, Point2, Printable, Vector2, camera::CameraSample}, loader
 
 #[derive(Clone)]
 pub enum Sampler {
+    Empty,
     Stratified(StratifiedSampler)
 }
 
@@ -9,156 +10,182 @@ impl Sampler {
     pub fn get_samples_per_pixel(&self) -> usize {
         match self {
             Self::Stratified(s) => s.get_samples_per_pixel(),
+            Self::Empty => panic!("No sampler specified. Calling get_spp")
         }
     }
 
     pub fn get_array_1d_offset(&self) -> usize {
         match self {
             Self::Stratified(s) => s.get_array_1d_offset(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_array_2d_offset(&self) -> usize {
         match self {
             Self::Stratified(s) => s.get_array_2d_offset(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_current_pixel(&self) -> Point2 {
         match self {
             Self::Stratified(s) => s.get_current_pixel(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_current_pixel_sampler_index(&self) -> usize {
         match self {
             Self::Stratified(s) => s.get_current_pixel_sampler_index(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn set_samples_per_pixel(&mut self, new_value: usize) {
         match self {
             Self::Stratified(s) => s.set_samples_per_pixel(new_value),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn set_array_1d_offset(&mut self, new_value: usize) {
         match self {
             Self::Stratified(s) => s.set_array_1d_offset(new_value),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn set_array_2d_offset(&mut self, new_value: usize) {
         match self {
             Self::Stratified(s) => s.set_array_2d_offset(new_value),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn set_current_pixel(&mut self, new_value: Point2) {
         match self {
             Self::Stratified(s) => s.set_current_pixel(new_value),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn set_current_pixel_sampler_index(&mut self, new_value: usize) {
         match self {
             Self::Stratified(s) => s.set_current_pixel_sampler_index(new_value),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_samples_1d_array_sizes(&mut self) -> &mut Vec<usize> {
         match self {
             Self::Stratified(s) => s.get_samples_1d_array_sizes(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_samples_2d_array_sizes(&mut self) -> &mut Vec<usize> {
         match self {
             Self::Stratified(s) => s.get_samples_2d_array_sizes(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_samples_1d_array(&mut self) -> &mut Vec<Vec<f32>> {
         match self {
             Self::Stratified(s) => s.get_samples_1d_array(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_samples_2d_array(&mut self) -> &mut Vec<Vec<Point2>> {
         match self {
             Self::Stratified(s) => s.get_samples_2d_array(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_1d(&mut self) -> f32 {
         match self {
             Self::Stratified(s) => s.get_1d(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_2d(&mut self) -> Point2 {
         match self {
             Self::Stratified(s) => s.get_2d(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn clone_with_seed(&self, seed: usize) -> Self {
         match self {
             Self::Stratified(s) => Self::Stratified(s.clone_with_seed(seed)),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn start_pixel(&mut self, p: Point2) {
         match self {
             Self::Stratified(s) => s.start_pixel(p),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_camera_sample(&mut self, p_raster: &Point2) -> CameraSample {
         match self {
             Self::Stratified(s) => s.get_camera_sample(p_raster),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn request_1d_array(&mut self, n: usize) {
         match self {
             Self::Stratified(s) => s.request_1d_array(n),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn request_2d_array(&mut self, n: usize) {
         match self {
             Self::Stratified(s) => s.request_2d_array(n),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn round_count(&self, n: usize) -> usize {
         match self {
             Self::Stratified(s) => s.round_count(n),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_1d_array(&mut self, n: usize) -> Vec<f32> {
         match self {
             Self::Stratified(s) => s.get_1d_array(n),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn get_2d_array(&mut self, n: usize) -> Vec<Point2> {
         match self {
             Self::Stratified(s) => s.get_2d_array(n),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn start_next_sample(&mut self) -> bool {
         match self {
             Self::Stratified(s) => s.start_next_sample(),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 
     pub fn set_sample_number(&mut self, sample_num: usize) -> bool {
         match self {
             Self::Stratified(s) => s.set_sample_number(sample_num),
+            Self::Empty => panic!("No sampler specified.")
         }
     }
 }
@@ -166,7 +193,8 @@ impl Sampler {
 impl Printable for Sampler {
     fn to_string(&self) -> String {
         match self {
-            Self::Stratified(s) => s.to_string()
+            Self::Stratified(s) => s.to_string(),
+            Self::Empty => "Empty Sampler".to_string()
         }
     }
 }

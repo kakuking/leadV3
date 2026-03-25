@@ -20,4 +20,10 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 - [x] Added scene loading to filters and films
 - [x] Added Lights and Point Lights
 - [x] Added Light loading to scene
-- [ ] Integrators to come and some sampling stuff I hope
+- [x] Integrators to come and Sampling
+- [x] Added integrators to scene loading and handling
+- [x] Calling Render just works
+- [x] Added saving to png/exr/ppm option (by inputting filename)
+- [x] Added Normal Integrator
+- [ ] Finish direct integrator
+- [ ] Add more lights, integrators, and so on...

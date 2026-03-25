@@ -1,4 +1,7 @@
 /target
 /cargo.lock
+/output/*
 *.obj
 *.ppm
+*.png
+*.exr

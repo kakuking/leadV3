@@ -3,10 +3,10 @@ use std::{collections::HashMap, sync::Arc};
 use roxmltree::Document;
 
 use crate::core::{
-    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, film::Film, filter::Filter, light::Light, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
+    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
 };
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub enum ParamVal {
     Float(f32),
     Int(i32),
@@ -147,16 +147,9 @@ impl Parameters {
         self.map.insert(key, ParamVal::LeadObject(obj));
     }
 
-    pub fn get_lead_object(&self, key: &str) -> Option<&LeadObject> {
-        match self.map.get(key) {
+    pub fn get_lead_object(&mut self, key: &str) -> Option<LeadObject> {
+        match self.map.remove(key) {
             Some(ParamVal::LeadObject(obj)) => Some(obj),
-            _ => None,
-        }
-    }
-
-    pub fn get_lead_object_cloned(&self, key: &str) -> Option<LeadObject> {
-        match self.map.get(key) {
-            Some(ParamVal::LeadObject(obj)) => Some(obj.clone()),
             _ => None,
         }
     }
@@ -278,11 +271,11 @@ impl Parameters {
     }
 }
 
-pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
+pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Instance> {
     let xml = std::fs::read_to_string(filename).unwrap();
     let doc = Document::parse(&xml).unwrap();
-
-    let mut scene = Scene::new();
+    
+    let mut instance = Instance::new();
 
     for node in doc.root_element().children().filter(|n| n.is_element()) {
         let tag = node.tag_name().name();
@@ -290,10 +283,10 @@ pub fn parse_xml(filename: &str, registry: &Registry) -> Option<Scene> {
 
         let params = parse_parameters_for_node(node, registry);
 
-        registry.add_to_scene(&mut scene, tag.to_string(), obj_type.to_string(), params);
+        registry.add_to_instance(&mut instance, tag.to_string(), obj_type.to_string(), params);
     }
 
-    Some(scene)
+    Some(instance)
 }
 
 fn parse_parameters_for_node(node: roxmltree::Node, registry: &Registry) -> Parameters {
@@ -342,14 +335,15 @@ fn parse_parameters_for_node(node: roxmltree::Node, registry: &Registry) -> Para
     params
 }
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub enum LeadObject {
-    Camera(Arc<Camera>),
+    Camera(Camera),
     Shape(Vec<Shape>),
-    Sampler(Arc<Sampler>),
-    Filter(Arc<Filter>),
-    Film(Arc<Film>),
-    Light(Arc<Light>)
+    Sampler(Sampler),
+    Filter(Filter),
+    Film(Film),
+    Light(Light),
+    Integrator(Integrator)
 }
 
 pub trait Manufacturable<T> {
@@ -366,6 +360,7 @@ pub struct Registry {
     pub filter_factories: HashMap<String, FactoryFn<Filter>>,
     pub film_factories: HashMap<String, FactoryFn<Film>>,
     pub light_factories: HashMap<String, FactoryFn<Light>>,
+    pub integrator_factories: HashMap<String, FactoryFn<Integrator>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -378,6 +373,7 @@ impl Registry {
             filter_factories: HashMap::new(),
             film_factories: HashMap::new(),
             light_factories: HashMap::new(),
+            integrator_factories: HashMap::new()
         }
     }
 
@@ -447,6 +443,17 @@ impl Registry {
         }
     }
 
+    pub fn register_integrator(&mut self, t: String, function: FactoryFn<Integrator>) {
+        self.integrator_factories.insert(t, function);
+    }
+
+    fn create_integrator(&self, t: String, parameters: Parameters) -> Integrator {
+        match self.integrator_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO INTEGRATOR FOUND OF TYPE {}", t),
+        }
+    }
+
     pub fn create_lead_object(
         &self,
         object: String,
@@ -455,27 +462,29 @@ impl Registry {
     ) -> LeadObject {
         match object.as_str() {
             "shape" => LeadObject::Shape(self.create_shape(object_type, parameters)),
-            "camera" => LeadObject::Camera(Arc::new(self.create_camera(object_type, parameters))),
-            "sampler" => LeadObject::Sampler(Arc::new(self.create_sampler(object_type, parameters))),
-            "filter" => LeadObject::Filter(Arc::new(self.create_filter(object_type, parameters))),
-            "film" => LeadObject::Film(Arc::new(self.create_film(object_type, parameters))),
-            "light" => LeadObject::Light(Arc::new(self.create_light(object_type, parameters))),
+            "camera" => LeadObject::Camera(self.create_camera(object_type, parameters)),
+            "sampler" => LeadObject::Sampler(self.create_sampler(object_type, parameters)),
+            "filter" => LeadObject::Filter(self.create_filter(object_type, parameters)),
+            "film" => LeadObject::Film(self.create_film(object_type, parameters)),
+            "light" => LeadObject::Light(self.create_light(object_type, parameters)),
+            "integrator" => LeadObject::Integrator(self.create_integrator(object_type, parameters)),
             _ => panic!("No lead object found with name {}", object),
         }
     }
 
-    pub fn add_to_scene(
+    pub fn add_to_instance(
         &self,
-        scene: &mut Scene,
+        instance: &mut Instance,
         object: String,
         object_type: String,
         parameters: Parameters,
     ) {
         match object.as_str() {
-            "shape" => scene.add_shapes(self.create_shape(object_type.to_string(), parameters)),
-            "camera" => scene.add_camera(self.create_camera(object_type.to_string(), parameters)),
-            "sampler" => scene.add_sampler(self.create_sampler(object_type.to_string(), parameters)),
-            "light" => scene.add_light(self.create_light(object_type, parameters)),
+            "shape" => instance.scene.add_shapes(self.create_shape(object_type.to_string(), parameters)),
+            "camera" => instance.set_camera(self.create_camera(object_type.to_string(), parameters)),
+            "sampler" => instance.set_sampler(self.create_sampler(object_type.to_string(), parameters)),
+            "light" => instance.scene.add_light(self.create_light(object_type, parameters)),
+            "integrator" => instance.set_integrator(self.create_integrator(object_type, parameters)),
             _ => eprintln!("No object found with name {}", object),
         }
     }

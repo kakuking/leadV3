@@ -1,5 +1,11 @@
 use crate::{core::{Normal3, Point2, Printable, Ray, Transform, Vector3, interaction::{Interaction, InteractionBase, InteractionT}, medium::MediumInterface, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, light::point_light::PointLight, loader::Manufacturable};
 
+#[derive(PartialEq)]
+pub enum LightStrategy {
+    UniformSampleAll,
+    UniformSampleOne
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum LightFlags {
     DeltaPosition=1,

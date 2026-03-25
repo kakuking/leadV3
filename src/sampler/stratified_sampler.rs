@@ -259,9 +259,36 @@ impl SamplerT for StratifiedSampler {
         self.set_array_2d_offset(0);
     }
 
-    fn clone_with_seed(&self, _seed: usize) -> Self {
-        // Self::init(self.samples_per_pixel, self.samples_1d.len())
-        todo!("stratified::clone_with_seed")
+    fn clone_with_seed(&self, seed: usize) -> Self {
+        let mut ret = Self::init(
+            self.x_pixel_samples,
+            self.y_pixel_samples,
+            self.jitter_samples,
+            self.samples_1d.len(),
+        );
+
+        ret.base.samples_1d_array_sizes = self.base.samples_1d_array_sizes.clone();
+        ret.base.samples_2d_array_sizes = self.base.samples_2d_array_sizes.clone();
+
+        let spp = ret.base.samples_per_pixel;
+
+        ret.base.samples_1d_array = ret
+            .base
+            .samples_1d_array_sizes
+            .iter()
+            .map(|&n| vec![0.0; n * spp])
+            .collect();
+
+        ret.base.samples_2d_array = ret
+            .base
+            .samples_2d_array_sizes
+            .iter()
+            .map(|&n| vec![Point2::origin(); n * spp])
+            .collect();
+
+        ret.rng = RNG::init(seed as u64);
+
+        ret
     }
 }
 

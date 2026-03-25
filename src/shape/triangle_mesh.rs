@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::Interaction, permute_p, permute_v, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
+use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::{Interaction, InteractionBase}, permute_p, permute_v, random::uniform_sample_triangle, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
 
 #[derive(Debug)]
 pub struct TriangleMesh {
@@ -428,7 +428,33 @@ impl ShapeT for Triangle {
         0.5 * (p1 - p0).cross(&(p2 - p0)).norm()
     }
 
-    fn sample(&self, _u: &Point2) -> Interaction {
-        todo!("Triangle::sample")
+    fn sample(&self, u: &Point2) -> Interaction {
+        let b = uniform_sample_triangle(u);
+        let p0 = self.mesh.p[self.v[0]];
+        let p1 = self.mesh.p[self.v[1]];
+        let p2 = self.mesh.p[self.v[2]];
+
+        let mut it = InteractionBase::new();
+        
+        let w = 1.0 - b.x - b.y;
+        it.p = Point3::from(p0.coords * b.x + p1.coords * b.y + p2.coords * w);
+
+        if self.mesh.n.len() > 0 {
+            it.n = b.x * self.mesh.n[self.v[0]] + b.y * self.mesh.n[self.v[1]] + (1.0 - b.x - b.y) * self.mesh.n[self.v[2]];
+        } else {
+            it.n = (p1 - p0).cross(&(p2 - p0)).normalize();
+        }
+
+        if self.get_reverse_orientation() {
+            it.n *= -1.0;
+        }
+
+        let p_abs_sum: Vector3 = (b.x * p0.coords).map(|x| x.abs())
+        - (-b.y * p1.coords).map(|x| x.abs())
+        - (-(1.0 - b.x - b.y) * p2.coords).map(|x| x.abs());
+
+        it.p_error = gamma(6.0) * p_abs_sum;
+
+        Interaction::Base(it)
     }
 }

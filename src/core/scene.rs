@@ -6,27 +6,17 @@ pub struct Scene {
     pub lights: Vec<Arc<Light>>,
     aggregate: Arc<Primitive>,
     world_bound: Bounds3,
-
     shapes: Vec<Arc<Shape>>,
-    sampler: Sampler,
-    camera: Camera
 }
 
 impl Scene {
     pub fn new() -> Self {
-        let camera = Camera::Empty;
-        let sampler = StratifiedSampler::create_from_parameters(
-            Parameters::new()
-        );
-        
         Self {
             aggregate: Arc::new(Primitive::Empty),
             lights: Vec::new(),
             world_bound: Bounds3::new(),
 
             shapes: Vec::new(),
-            camera,
-            sampler
         }
     }
 
@@ -47,24 +37,8 @@ impl Scene {
         }
     }
 
-    pub fn add_camera(&mut self, camera: Camera) {
-        self.camera = camera;
-    }
-
-    pub fn add_sampler(&mut self, sampler: Sampler) {
-        self.sampler = sampler;
-    }
-
     pub fn add_light(&mut self, light: Light) {
         self.lights.push(Arc::new(light));
-    }
-
-    pub fn get_camera(&mut self) -> Camera {
-        self.camera.clone()
-    }
-
-    pub fn get_sampler(&mut self) -> Sampler {
-        self.sampler.clone()
     }
 
     fn create_aggregate(&mut self) {
@@ -118,13 +92,9 @@ impl Printable for Scene {
             "Scene: [\n
             \tNum lights: {}\n
             \tNum Shapes: {}\n
-            \tSampler: {}\n
-            \tCamera: {}\n
             ]",
             self.lights.len(),
             self.shapes.len(),
-            self.sampler.to_string(),
-            self.camera.to_string()
         )
     }
 }

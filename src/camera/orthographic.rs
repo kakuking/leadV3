@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, spectrum::Spectrum, translation}, loader::{LeadObject, Manufacturable, Parameters}};
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub struct OrthographicCamera {
     pub base: ProjectedCameraBase,
 
@@ -18,7 +18,7 @@ impl OrthographicCamera {
         shutter_close: f32,
         lens_radius: f32,
         focal_distance: f32,
-        film: Arc<Film>,
+        film: Film,
         medium: Option<Arc<Medium>>
     ) -> Self {
         let base = ProjectedCameraBase::init(camera_to_world, Self::create_orthographic(0.0, 1.0), screen_window, shutter_open, shutter_close, lens_radius, focal_distance, film, medium);
@@ -51,12 +51,8 @@ impl CameraT for OrthographicCamera {
     fn get_medium(&self) -> Option<Arc<Medium>> { self.base.medium.clone() }
     fn get_shutter_open(&self) -> f32 { self.base.shutter_open }
     fn get_shutter_close(&self) -> f32 { self.base.shutter_close }
-    fn get_film(&self) -> Arc<Film> { self.base.film.clone() }
+    fn get_film(&mut self) -> &mut Film { &mut self.base.film }
     fn get_camera_to_world(&self) -> Transform { self.base.camera_to_world }
-
-    fn set_film(&mut self, film: Arc<Film>) {
-        self.base.set_film(film);
-    }
 
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32 {
         let p_film = Point3::new(sample.p_film.x, sample.p_film.y, 0.0);
@@ -111,6 +107,7 @@ impl Printable for OrthographicCamera {
 
 impl Manufacturable<Camera> for OrthographicCamera {
     fn create_from_parameters(params: Parameters) -> Camera {
+        let mut params = params;
         let eye    = params.get_point3("eye",    Some(Point3::new(0.0, 0.0, -1.0)));
         let target = params.get_point3("target", Some(Point3::origin()));
         let up     = params.get_vector3("up",    Some(Vector3::new(0.0, 1.0, 0.0)));
@@ -136,7 +133,7 @@ impl Manufacturable<Camera> for OrthographicCamera {
         let focal_distance = params.get_float("focal_distance", Some(1e6));
 
         let film = match params.get_lead_object("film") {
-            Some(LeadObject::Film(f)) => Arc::clone(f),
+            Some(LeadObject::Film(f)) => f,
             _ => panic!("Camera requires a nested film"),
         };
 

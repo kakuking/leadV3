@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::{core::{Point2, Printable, Vector3, spectrum::Spectrum}, loader::Manufacturable, reflection::lambertian::LambertianReflection};
+use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, loader::Manufacturable, reflection::lambertian::LambertianReflection};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -43,7 +43,7 @@ impl BxDF {
         }
     }
 
-    pub fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: &mut BxDFType) -> Spectrum {
+    pub fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: Option<BxDFType>) -> Spectrum {
         match self {
             Self::Lambertian(b) => b.sample_f(wo, wi, sample, pdf, sampled_type)
         }
@@ -81,8 +81,60 @@ pub trait BxDFT: Manufacturable<BxDF> + Printable {
     }
 
     fn f(&self, wo: &Vector3, wi: &Vector3) -> Spectrum;
-    fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: &mut BxDFType) -> Spectrum;
-    fn rho(&self, wo: &Vector3, n_samples: usize, samples: &mut Vec<Point2>) -> Spectrum;
-    fn rho_2(&self, n_samples: usize, samples1: &mut Vec<Point2>, samples2: &mut Vec<Point2>) -> Spectrum;
-    fn pdf(&self, wi: &Vector3, wo: &Vector3) -> f32;
+
+    fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, _sampled_type: Option<BxDFType>) -> Spectrum {
+
+        *wi = cosine_sample_hemisphere(*sample);
+        if wo.z < 0.0 {
+            wi.z *= -1.0;
+        }
+
+        *pdf = self.pdf(wo, &wi);
+        self.f(wo, &wi)
+    }
+
+    fn rho(&self, wo: &Vector3, n_samples: usize, samples: &mut Vec<Point2>) -> Spectrum {
+        let mut r = Spectrum::zeros();
+
+        for i in 0..n_samples {
+            let mut wi = Vector3::zeros();
+            let mut pdf = 0.0;
+
+            let f = self.sample_f(wo, &mut wi, &samples[i], &mut pdf, None);
+
+            if pdf > 0.0 {
+                r += f * abs_cos_theta(&wi) / pdf;
+            }
+        }
+
+        r / n_samples as f32
+    }
+
+    fn rho_2(&self, n_samples: usize, samples1: &mut Vec<Point2>, samples2: &mut Vec<Point2>) -> Spectrum {
+        let mut r = Spectrum::zeros();
+
+        for i in 0..n_samples {
+            let wo;
+            let mut wi = Vector3::zeros();
+
+            wo = uniform_sample_hemisphere(&samples1[i]);
+            let pdfo = uniform_sample_hemisphere_pdf();
+            let mut pdfi = 0.0;
+            let f = self.sample_f(&wo, &mut wi, &samples2[i], &mut pdfi, None);
+
+            if pdfi > 0.0 {
+                r += f * abs_cos_theta(&wi) * abs_cos_theta(&wo) / (pdfo * pdfi);
+            }
+        }
+
+        r
+    }
+
+    fn pdf(&self, wi: &Vector3, wo: &Vector3) -> f32 {
+        if same_hemisphere(wo, wi) {
+            abs_cos_theta(wi) * INV_PI
+        } else {
+            0.0
+        }
+    }
 }

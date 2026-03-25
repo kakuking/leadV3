@@ -1,4 +1,4 @@
-use crate::{core::{INV_PI, Point2, Printable, Vector3, bxdf::{BxDF, BxDFT, BxDFType}, spectrum::Spectrum}, loader::Manufacturable};
+use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, random::{cosine_sample_hemisphere, same_hemisphere}, spectrum::Spectrum}, loader::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct LambertianReflection {
@@ -21,22 +21,6 @@ impl BxDFT for LambertianReflection {
 
     fn f(&self, _wo: &Vector3, _wi: &Vector3) -> Spectrum {
         self.r * INV_PI
-    }
-
-    fn rho(&self, _wo: &Vector3, _n_samples: usize, _samples: &mut Vec<Point2>) -> Spectrum {
-        self.r
-    }
-
-    fn rho_2(&self, _n_samples: usize, _samples1: &mut Vec<Point2>, _samples2: &mut Vec<Point2>) -> Spectrum {
-        self.r
-    }
-    
-    fn sample_f(&self, _wo: &Vector3, _wi: &mut Vector3, _sample: &Point2, _pdf: &mut f32, _sampled_type: &mut BxDFType) -> Spectrum {
-        panic!("Not implemented: Lambertian::Sample_f");
-    }
-
-    fn pdf(&self, _wi: &Vector3, _wo: &Vector3) -> f32 {
-        panic!("Not implemented: Lambertian::pdf");
     }
 }
 

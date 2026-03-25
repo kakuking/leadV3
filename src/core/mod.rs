@@ -16,6 +16,10 @@ pub mod spectrum;
 pub mod image;
 pub mod bxdf;
 pub mod texture;
+pub mod integrator;
+pub mod random;
+
+pub mod lead_instance;
 
 pub use math::*;
 pub use geometry::*;

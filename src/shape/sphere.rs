@@ -1,4 +1,4 @@
-use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, gamma, interaction::Interaction, quadratic, shape::{Shape, ShapeT}, translation}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
+use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, gamma, interaction::{Interaction, InteractionBase}, quadratic, random::uniform_sample_sphere, shape::{Shape, ShapeT}, translation}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
@@ -149,12 +149,23 @@ impl ShapeT for Sphere {
         self.phi_max * self.radius * (self.z_max - self.z_min)
     }
 
-    fn sample(&self, _u: &Point2) -> Interaction {
-        todo!("sphere::sample");
-    }
+    fn sample(&self, u: &Point2) -> Interaction {
+        let mut p_obj = Point3::origin() + self.radius * uniform_sample_sphere(u);
+        let mut it = InteractionBase::new();
 
-    fn pdf_interaction(&self, re: &Interaction, wi: &Vector3) -> f32 {
-        todo!("sphere::pdf_interaction");
+        it.n = apply_transform_to_normal(&(p_obj - Point3::origin()), &self.object_to_world);
+
+        if self.reverse_orientation {
+            it.n *= -1.0;
+        }
+
+        p_obj *= self.radius / (p_obj - Point3::origin()).norm();
+
+        let p_obj_error = gamma(5.0) * (p_obj - Point3::origin()).map(|x| x.abs());
+
+        it.p = self.object_to_world.transform_point(&p_obj);
+
+        Interaction::Base(it)
     }
 }
 
