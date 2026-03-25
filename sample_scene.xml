@@ -1,7 +1,7 @@
 <scene>
     <sampler type="stratified">
-        <int name="x_pixel_samples" value="1"/>
-        <int name="y_pixel_samples" value="1"/>
+        <int name="x_pixel_samples" value="2"/>
+        <int name="y_pixel_samples" value="2"/>
         <bool name="jitter" value="true"/>
     </sampler>
 
@@ -13,7 +13,7 @@
         <float name="extent" value="2"/>
 
         <film type="film" name="film">
-            <point2 name="resolution" value="256, 256"/>
+            <point2 name="resolution" value="512, 512"/>
             <string name="filename" value="output.exr"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>

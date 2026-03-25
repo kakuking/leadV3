@@ -103,7 +103,7 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
         }
     }
 
-    let mut file = File::create("hit_test.ppm").expect("Failed to create output PPM");
+    let mut file = File::create("output.ppm").expect("Failed to create output PPM");
     writeln!(file, "P3").unwrap();
     writeln!(file, "{} {}", width, height).unwrap();
     writeln!(file, "255").unwrap();
