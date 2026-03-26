@@ -1,6 +1,8 @@
 /target
 /cargo.lock
 /output/*
+/z_output
+/z_input
 *.obj
 *.ppm
 *.png

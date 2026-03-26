@@ -363,14 +363,18 @@ impl BVHAccel {
         let mut hit: bool = false;
 
         let inv_dir = Vector3::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
-        // let dir_is_neg: [bool; 3] = [inv_dir.x < 0.0, inv_dir.y < 0.0, inv_dir.z < 0.0];
-        let dir_is_neg: [usize; 3] = [if inv_dir.x < 0.0 { 1 } else { 0 }, if inv_dir.y < 0.0 { 1 } else { 0 }, if inv_dir.z < 0.0 { 1 } else { 0 }];
+        let dir_is_neg: [usize; 3] = [
+            if inv_dir.x < 0.0 { 1 } else { 0 }, 
+            if inv_dir.y < 0.0 { 1 } else { 0 }, 
+            if inv_dir.z < 0.0 { 1 } else { 0 }
+        ];
         
-        let mut to_visit_offset = 0usize;
+        // let mut to_visit_offset = 0usize;
         let mut current_node_idx = 0usize;
-        let mut nodes_to_visit = [0usize; 64];  // custom stack
+        let mut nodes_to_visit: Vec<usize> = Vec::new();  // custom stack
         loop {
             let node = &self.nodes[current_node_idx];
+
             if node.bounds.intersect_p_with_inv_dir(ray, &inv_dir, dir_is_neg) {
                 if node.n_primitives > 0 {
                     for i in 0..node.n_primitives {
@@ -381,33 +385,48 @@ impl BVHAccel {
                         }
                     }
 
-                    if to_visit_offset == 0 {
-                        break;
+                    // if to_visit_offset == 0 {
+                    //     break;
+                    // }
+                    // current_node_idx = nodes_to_visit[to_visit_offset-1];
+                    // to_visit_offset -= 1;
+                    match nodes_to_visit.pop() {
+                        Some(next_idx) => current_node_idx = next_idx,
+                        None => break,
                     }
-                    current_node_idx = nodes_to_visit[to_visit_offset-1];
-                    to_visit_offset -= 1;
+
                 } else {
+                    let second_child = node.second_child_offset.expect("Interior BVH node missing second child offset");
+
                     if dir_is_neg[node.axis] == 1{
-                        if let Some(next_offset) = node.second_child_offset {
-                            nodes_to_visit[to_visit_offset] = current_node_idx + 1;
-                            to_visit_offset += 1;
-                            current_node_idx = next_offset;
-                        }
+                        // if let Some(next_offset) = node.second_child_offset {
+                        //     nodes_to_visit[to_visit_offset] = current_node_idx + 1;
+                        //     to_visit_offset += 1;
+                        //     current_node_idx = next_offset;
+                        // }
+                        nodes_to_visit.push(current_node_idx + 1);
+                        current_node_idx = second_child;
                     } else {
-                        if let Some(next_offset) = node.second_child_offset {
-                            nodes_to_visit[to_visit_offset] = next_offset;
-                            to_visit_offset += 1; 
-                            current_node_idx += 1;
-                        }
+                        // if let Some(next_offset) = node.second_child_offset {
+                        //     nodes_to_visit[to_visit_offset] = next_offset;
+                        //     to_visit_offset += 1; 
+                        //     current_node_idx += 1;
+                        // }
+                        nodes_to_visit.push(second_child);
+                        current_node_idx += 1;
                     }
                 }
             } else {
-                if to_visit_offset == 0 {
-                    break;
-                }
+                // if to_visit_offset == 0 {
+                //     break;
+                // }
 
-                to_visit_offset -= 1;
-                current_node_idx = nodes_to_visit[to_visit_offset];
+                // to_visit_offset -= 1;
+                // current_node_idx = nodes_to_visit[to_visit_offset];
+                match nodes_to_visit.pop() {
+                    Some(next_idx) => current_node_idx = next_idx,
+                    None => break
+                }
             }
         }
 
