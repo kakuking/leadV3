@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, shape::bounding_volume_heirarchy::BVHAccel};
+use crate::{core::{Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
 
 #[derive(Debug, Clone)]
 pub enum Primitive {
@@ -67,7 +67,7 @@ impl Primitive {
         match self {
             Self::Empty => panic!("to_string called on empty primitive"),
             Self::Geometric(g) => {
-                g.shape.to_string()
+                g.to_string()
             }
             Self::BVH(b) => {
                 b.to_string()
@@ -115,7 +115,60 @@ impl GeometricPrimitive {
     }
 
     pub fn world_bounds(&self) -> Bounds3 { self.shape.world_bounds() }
-    pub fn compute_scattering_function(&self, isect: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_nodes: bool) {
-        todo!("GeoPrim::comptute_scattering");
+    pub fn compute_scattering_function(&self, isect: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_lobes: bool) {
+        match &self.material {
+            Some(m) => m.compute_scattering_funcitons(isect, mode, allow_multiple_lobes),
+            None => panic!("No Material Found"),
+        }
+    }
+
+    pub fn create_from_parameters(param: crate::loader::Parameters) -> Vec<Primitive> {
+        let mut param = param;
+
+        let shapes = match param.get_lead_object("shape") {
+            Some(LeadObject::Shape(s)) => s,
+            _ => panic!("Primitive requires a shape")
+        };
+
+        let mat = match param.get_lead_object("material") {
+            Some(LeadObject::Material(m)) => Some(Arc::new(m)),
+            _ => None
+        };
+
+        let mut primitives: Vec<Primitive> = Vec::new();
+
+        for shape in shapes {
+            let gp = Self {
+                shape: Arc::new(shape),
+                material: mat.clone(),
+                area_light: None,
+                medium_interface: MediumInterface::new()
+            };
+
+            primitives.push(
+                Primitive::Geometric(Arc::new(gp))
+            );
+        }
+
+        primitives
+    }
+}
+
+    
+
+impl Printable for GeometricPrimitive {
+    fn to_string(&self) -> String {
+        format!(
+            "Geometric Primitive: [\n
+            \tShape: {}\n
+            \tMaterial: {:?}\n
+            \tArea Light: {:?}\n
+            \tMedium Interface: {:?}\n
+            ]",
+            self.shape.to_string(),
+            self.material,
+            self.area_light,
+            self.medium_interface
+        )
     }
 }

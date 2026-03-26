@@ -1,4 +1,4 @@
-use crate::{core::{PI, Point2, Printable, Vector2, camera::CameraSample}, loader::Manufacturable, sampler::stratified_sampler::StratifiedSampler};
+use crate::{core::{PI, Point2, Printable, Vector2, camera::CameraSample}, registry::Manufacturable, sampler::stratified_sampler::StratifiedSampler};
 
 #[derive(Clone)]
 pub enum Sampler {

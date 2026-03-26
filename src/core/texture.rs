@@ -36,7 +36,7 @@ impl<T: Debug + Clone> ConstantTexture<T> {
 }
 
 impl<T: Debug + Clone> Texture<T> for ConstantTexture<T> {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T {
+    fn evaluate(&self, _si: &SurfaceInteraction) -> T {
         self.value.clone()
     }
 }

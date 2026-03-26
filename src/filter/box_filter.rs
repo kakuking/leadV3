@@ -1,4 +1,4 @@
-use crate::{core::{Point2, Printable, Vector2, filter::{Filter, FilterT}}, loader::{Manufacturable, Parameters}};
+use crate::{core::{Point2, Printable, Vector2, filter::{Filter, FilterT}}, loader::Parameters, registry::Manufacturable};
 
 #[derive(Clone)]
 pub struct BoxFilter {

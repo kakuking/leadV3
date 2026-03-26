@@ -1,4 +1,4 @@
-use crate::{core::{ONE_MINUS_EPSILON, Point2, Printable, sampler::{Sampler, SamplerBase, SamplerT}}, loader::Manufacturable, sampler::rng::RNG};
+use crate::{core::{ONE_MINUS_EPSILON, Point2, Printable, sampler::{Sampler, SamplerBase, SamplerT}}, registry::Manufacturable, sampler::rng::RNG};
 
 #[derive(Clone)]
 pub struct StratifiedSampler {

@@ -32,5 +32,7 @@ Output of the intersection renderer (incomplete direct renderer), which outputs 
 - [x] Calling Render just works
 - [x] Added saving to png/exr/ppm option (by inputting filename)
 - [x] Added Normal Integrator
+- [x] Scene handles primitives not shapes now
+- [x] Fixed a bug in computing bsdf at intersected
 - [ ] Finish direct integrator
 - [ ] Add more lights, integrators, and so on...

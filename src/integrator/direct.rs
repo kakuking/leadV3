@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::InteractionT, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
+use crate::{core::{Printable, Ray, bxdf::BxDFType, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::{InteractionT, TransportMode}, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct DirectIntegrator {
     max_depth: usize,
@@ -46,6 +46,12 @@ impl SamplerIntegrator for DirectIntegrator {
             }
 
             return l;
+        }
+
+        its.compute_scattering_functions(ray, true, TransportMode::Radiance);
+
+        if let Some(bsdf) = &its.bsdf {
+            return bsdf.f(its.get_wo(), &-ray.d, None);
         }
 
         Spectrum::x()   // Just everything red

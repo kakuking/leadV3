@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, spectrum::Spectrum, translation}, loader::{LeadObject, Manufacturable, Parameters}};
+use crate::{core::{Bounds2, INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, spectrum::Spectrum, translation}, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 // #[derive(Clone)]
 pub struct OrthographicCamera {

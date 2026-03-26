@@ -1,4 +1,5 @@
-use crate::loader::{Manufacturable, Registry};
+use crate::core::primitive::GeometricPrimitive;
+use crate::registry::{Registry, Manufacturable};
 use crate::core::Printable;
 
 // Camera and film
@@ -6,6 +7,9 @@ use crate::camera::orthographic::OrthographicCamera;
 use crate::core::film::Film;
 use crate::filter::box_filter::BoxFilter;
 use crate::filter::triangle_filter::TriangleFilter;
+
+// Materials 
+use crate::material::matte::MatteMaterial;
 
 // Samplers
 use crate::sampler::stratified_sampler::StratifiedSampler;
@@ -23,6 +27,7 @@ use crate::light::point_light::PointLight;
 
 pub mod core;
 pub mod loader;
+pub mod registry;
 
 pub mod interaction;
 pub mod shape;
@@ -33,6 +38,7 @@ pub mod filter;
 pub mod reflection;
 pub mod texture;
 pub mod integrator;
+pub mod material;
 
 fn load_scene_and_render_hit_ppm(registry: &Registry) {
     let mut instance = match loader::parse_xml("sample_scene.xml", registry) {
@@ -44,9 +50,9 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
 
     let integrator = instance.get_integrator();
 
-    println!("{}", integrator.to_string());
+    println!("Integrator: {}", integrator.to_string());
 
-    println!("About to call render: ");
+    println!("Rendering...");
 
     instance.render();
 }
@@ -122,6 +128,20 @@ fn main() {
         Box::new(|params| {
             NormalIntegrator::create_from_parameters(params)
         }),
+    );
+
+    registry.register_material(
+        "matte".to_string(), 
+        Box::new(|params| {
+        MatteMaterial::create_from_parameters(params)
+        }),
+    );
+
+    registry.register_primitive(
+        "geometric".to_string(),
+        Box::new(|params| {
+            GeometricPrimitive::create_from_parameters(params)
+        })
     );
 
     load_scene_and_render_hit_ppm(&registry);

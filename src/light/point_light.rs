@@ -1,4 +1,4 @@
-use crate::{core::{Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::{Interaction, InteractionBase}, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, spectrum::Spectrum}, loader::{Manufacturable, Parameters}};
+use crate::{core::{Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::{Interaction, InteractionBase}, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
 
 pub struct PointLight {
     flags: LightFlags,

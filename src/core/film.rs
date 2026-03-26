@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use atomic_float::AtomicF32;
 
-use crate::core::{Bounds2, Point2, Vector2, filter::Filter, image::{write_image, write_ppm}, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}};
+use crate::{core::{Bounds2, Point2, Vector2, filter::Filter, image::{write_image, write_ppm}, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}}, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 use std::sync::atomic::Ordering;
 
@@ -406,8 +406,6 @@ impl Film {
         offset as usize
     }
 }
-
-use crate::loader::{LeadObject, Manufacturable, Parameters};
 
 impl Manufacturable<Film> for Film {
     fn create_from_parameters(params: Parameters) -> Film {

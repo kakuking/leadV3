@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::{Interaction, InteractionBase}, permute_p, permute_v, random::uniform_sample_triangle, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}};
+use crate::{core::{Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::{Interaction, InteractionBase}, permute_p, permute_v, random::uniform_sample_triangle, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::Parameters, registry::Manufacturable};
 
 #[derive(Debug)]
 pub struct TriangleMesh {

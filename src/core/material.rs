@@ -1,8 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use nalgebra::Vector3;
-
-use crate::{core::{Vector2, bxdf::BxDF, interaction::TransportMode, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::lambertian::LambertianReflection};
+use crate::{core::{Printable, Vector2, bsdf::BSDF, interaction::TransportMode, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, material::matte::MatteMaterial, registry::Manufacturable};
 
 #[derive(Debug)]
 pub enum Material {
@@ -11,6 +9,9 @@ pub enum Material {
 
 impl Material {
     pub fn compute_scattering_funcitons(&self, si: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_lobes: bool) {
+        let bsdf = BSDF::init(&si, 1.0);
+        si.bsdf = Some(bsdf);
+        
         match self {
             Self::Matte(m) => m.compute_scattering_funcitons(si, mode, allow_multiple_lobes),
         }
@@ -18,7 +19,7 @@ impl Material {
 }
 
 
-pub trait MaterialT {
+pub trait MaterialT: Manufacturable<Material> + Printable {
     fn compute_scattering_funcitons(&self, si: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_lobes: bool);
     fn bump(d: &Arc<dyn Texture<f32>>, si: &mut SurfaceInteraction) {
         let mut si_eval = si.clone();
@@ -50,53 +51,5 @@ pub trait MaterialT {
         let dndv = si.shading.dndv;
 
         si.set_shading_geometry(&dpdu, &dpdv, &dndu, &dndv, false);
-    }
-}
-
-#[derive(Debug)]
-pub struct MatteMaterial {
-    kd: Arc<dyn Texture<Spectrum>>,
-    sigma: Arc<dyn Texture<f32>>,
-    bump_map: Option<Arc<dyn Texture<f32>>>,
-}
-
-impl MatteMaterial {
-    pub fn init(
-        kd: Arc<dyn Texture<Spectrum>>,
-        sigma: Arc<dyn Texture<f32>>,
-        bump_map: Option<Arc<dyn Texture<f32>>>
-    ) -> Self {
-        Self {
-            kd,
-            sigma,
-            bump_map
-        }
-    }
-}
-
-impl MaterialT for MatteMaterial {
-    fn compute_scattering_funcitons(&self, si: &mut SurfaceInteraction, _mode: TransportMode, _allow_multiple_lobes: bool) {
-        if let Some(b) = &self.bump_map {
-            Self::bump(b, si);
-        }
-
-        let r = self.kd.evaluate(si);
-        let sig = self.sigma.evaluate(&si).clamp(0.0, 90.0);
-
-        if r == Vector3::zeros() {
-            let bsdf = si.bsdf.as_mut().unwrap();
-            if sig == 0.0 {
-                bsdf.add(
-                    BxDF::Lambertian(
-                        LambertianReflection::init(r))
-                    );
-            } else {
-                todo!("to make OrenNayar")
-                // bsdf.add(
-                //     BxDF::OrenNayar(
-                //         OrenNayarReflection::init(r, sig))
-                //     );
-            }
-        }
     }
 }

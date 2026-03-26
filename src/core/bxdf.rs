@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, loader::Manufacturable, reflection::lambertian::LambertianReflection};
+use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, registry::Manufacturable, reflection::lambertian::LambertianReflection};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]

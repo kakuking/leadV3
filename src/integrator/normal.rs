@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::InteractionT, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, loader::Manufacturable};
+use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::InteractionT, light::LightStrategy, primitive::Primitive, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct NormalIntegrator {
     max_depth: usize,
@@ -47,6 +47,12 @@ impl SamplerIntegrator for NormalIntegrator {
 
             return l;
         }
+
+
+        match &its.bsdf {
+            Some(bsdf) => println!("Bsdf: {:?}", bsdf),
+            None => println!("Nop BSDF") 
+        };
 
         its.get_n().clone().map(|x| x.abs())
     }

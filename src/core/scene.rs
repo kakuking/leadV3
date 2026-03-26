@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Printable, Ray, camera::Camera, light::Light, medium::MediumInterface, primitive::{GeometricPrimitive, Primitive}, sampler::Sampler, shape::Shape, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, loader::{Manufacturable, Parameters}, sampler::stratified_sampler::StratifiedSampler, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
+use crate::{core::{Bounds3, Printable, Ray, light::Light, primitive::{Primitive}, sampler::Sampler, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
 
 pub struct Scene {
     pub lights: Vec<Arc<Light>>,
     aggregate: Arc<Primitive>,
     world_bound: Bounds3,
-    shapes: Vec<Arc<Shape>>,
+    primitives: Vec<Arc<Primitive>>,
 }
 
 impl Scene {
@@ -16,7 +16,7 @@ impl Scene {
             lights: Vec::new(),
             world_bound: Bounds3::new(),
 
-            shapes: Vec::new(),
+            primitives: Vec::new(),
         }
     }
 
@@ -31,9 +31,9 @@ impl Scene {
         self.lights = lights;
     }
 
-    pub fn add_shapes(&mut self, shapes: Vec<Shape>) {
-        for shape in shapes {
-            self.shapes.push(Arc::new(shape));
+    pub fn add_primitives(&mut self, primitives: Vec<Primitive>) {
+        for prim in primitives {
+            self.primitives.push(Arc::new(prim));
         }
     }
 
@@ -42,28 +42,15 @@ impl Scene {
     }
 
     fn create_aggregate(&mut self) {
-        let shapes = &self.shapes;
+        let primitives = &self.primitives;
         let mut accel: BVHAccel = BVHAccel::init(32, SplitMethod::SAH);
-        let mi = MediumInterface::new();
 
-        for shape in shapes {
-            let gp = GeometricPrimitive::init(
-                shape.clone(), 
-                None, 
-                None, 
-                mi.clone()
-            );
-
+        for primitive in primitives {
             accel.add_primitive(
-                Arc::new(
-                    Primitive::Geometric(
-                        Arc::new(
-                            gp
-                        )
-                    )
-                )
+                primitive.clone()
             );
         }
+
         accel.build();
 
         self.aggregate = Arc::new(
@@ -91,10 +78,10 @@ impl Printable for Scene {
         format!(
             "Scene: [\n
             \tNum lights: {}\n
-            \tNum Shapes: {}\n
+            \tNum Primitives: {}\n
             ]",
             self.lights.len(),
-            self.shapes.len(),
+            self.primitives.len(),
         )
     }
 }

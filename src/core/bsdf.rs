@@ -38,14 +38,14 @@ impl BSDF {
             ss,
             ts,
             n_bxdfs: 0,
-            bxdfs: bxdfs
+            bxdfs: Vec::new()
         }
     }
 
     pub fn add(&mut self, b: BxDF) {
         assert!(self.n_bxdfs < MAX_BXDFS);
 
-        self.bxdfs[self.n_bxdfs] = b;
+        self.bxdfs.push(b);
         self.n_bxdfs += 1;
     }
 

@@ -1,4 +1,4 @@
-use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, random::{cosine_sample_hemisphere, same_hemisphere}, spectrum::Spectrum}, loader::Manufacturable};
+use crate::{core::{INV_PI, Printable, Vector3, bxdf::{BxDF, BxDFT, BxDFType}, spectrum::Spectrum}, registry::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct LambertianReflection {
