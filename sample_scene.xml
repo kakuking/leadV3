@@ -16,7 +16,7 @@
 
         <film type="film" name="film">
             <point2 name="resolution" value="512, 512"/>
-            <string name="filename" value="z_input/direct.png"/>
+            <string name="filename" value="z_output/direct.png"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>
 
