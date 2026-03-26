@@ -78,3 +78,19 @@ pub fn uniform_sample_triangle(u: &Point2) -> Point2 {
 
     Point2::new(1.0 - su0, u[1] * su0)
 }
+
+pub fn uniform_sample_cone(u: &Point2, cos_theta_max: f32) -> Vector3 {
+    let cos_theta = (1.0 - u.x) + u.x * cos_theta_max;
+    let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+    let phi = u.y * 2.0 * PI;
+
+    Vector3::new(
+        sin_theta * phi.cos(), 
+        sin_theta * phi.sin(), 
+        cos_theta
+    )
+}
+
+pub fn uniform_cone_pdf(cos_theta_max: f32) -> f32 {
+    1.0 / (2.0 * PI * (1.0 - cos_theta_max))
+}

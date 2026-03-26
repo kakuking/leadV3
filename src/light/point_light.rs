@@ -1,5 +1,6 @@
 use crate::{core::{Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::{Interaction, InteractionBase}, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
 
+#[derive(Debug, Clone)]
 pub struct PointLight {
     flags: LightFlags,
     n_samples: u32,
@@ -34,23 +35,23 @@ impl LightT for PointLight {
     fn get_light_to_world(&self) -> Transform { self.light_to_world }
     fn get_world_to_light(&self) -> Transform { self.world_to_light }
 
-    fn sample_li(&self, re: &Interaction, u: &Point2, wi: &mut Vector3, pdf: &mut f32, vis: &mut VisibilityTester) -> Spectrum {
-        *wi = (self.p_light - re.get_p()).normalize();
+    fn sample_li(&self, re: &InteractionBase, u: &Point2, wi: &mut Vector3, pdf: &mut f32, vis: &mut VisibilityTester) -> Spectrum {
+        *wi = (self.p_light - re.p).normalize();
         *pdf = 1.0;
 
         *vis = VisibilityTester::init(
-            re.get_base(), 
-            &InteractionBase::init_no_wo(&self.p_light, *re.get_time(), self.medium_interface.clone())
+            re, 
+            &InteractionBase::init_no_wo(&self.p_light, re.time, self.medium_interface.clone())
         );
 
-        self.i / (self.p_light - re.get_p()).norm_squared()
+        self.i / (self.p_light - re.p).norm_squared()
     }
 
     fn power(&self) -> Spectrum { 4.0 * PI * self.i }
 
     fn le(&self, _r: &Ray) -> Spectrum { Spectrum::zeros() }
 
-    fn pdf_li(&self, _re: &Interaction, _wi: &Vector3) -> f32 { 0.0 }
+    fn pdf_li(&self, _re: &InteractionBase, _wi: &Vector3) -> f32 { 0.0 }
     
     fn sample_le(&self, u1: &Point2, u2: &Point2, time: f32, ray: &mut Ray, n_light: &mut Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
         todo!("PointLight::Sample_Le")

@@ -428,8 +428,9 @@ impl ShapeT for Triangle {
         0.5 * (p1 - p0).cross(&(p2 - p0)).norm()
     }
 
-    fn sample(&self, u: &Point2) -> Interaction {
+    fn sample(&self, u: &Point2, pdf: &mut f32) -> InteractionBase {
         let b = uniform_sample_triangle(u);
+        
         let p0 = self.mesh.p[self.v[0]];
         let p1 = self.mesh.p[self.v[1]];
         let p2 = self.mesh.p[self.v[2]];
@@ -455,6 +456,8 @@ impl ShapeT for Triangle {
 
         it.p_error = gamma(6.0) * p_abs_sum;
 
-        Interaction::Base(it)
+        *pdf = self.pdf();
+
+        it
     }
 }

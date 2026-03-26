@@ -1,4 +1,5 @@
 use crate::core::primitive::GeometricPrimitive;
+use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::registry::{Registry, Manufacturable};
 use crate::core::Printable;
 
@@ -141,6 +142,13 @@ fn main() {
         "geometric".to_string(),
         Box::new(|params| {
             GeometricPrimitive::create_from_parameters(params)
+        })
+    );
+
+    registry.register_light(
+        "diffuse".to_string(), 
+        Box::new(|params| {
+            DiffuseAreaLight::create_from_parameters(params)
         })
     );
 

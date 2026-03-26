@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{bounds::Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
+use crate::{core::{Printable, Ray, bounds::Bounds3, interaction::{InteractionT, TransportMode}, light::{self, Light}, material::Material, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
 
 #[derive(Debug, Clone)]
 pub enum Primitive {
@@ -41,7 +41,16 @@ impl Primitive {
             Self::BVH(b) => { b.intersect_p(ray) }
         }
     }
-    pub fn get_area_light(&self) -> Option<Arc<AreaLight>> {
+
+    pub fn get_shape(&self) -> Arc<Shape> {
+        match self {
+            Self::Empty => panic!("get_shape called on empty primitive"),
+            Self::Geometric(g) => g.shape.clone(),
+            Self::BVH(b) => panic!("get_shape on BVH")
+        }
+    }
+
+    pub fn get_area_light(&self) -> Option<Arc<Light>> {
         match self {
             Self::Empty => panic!("get_area_light called on empty primitive"),
             Self::Geometric(g) => { g.get_area_light().clone() }
@@ -80,12 +89,12 @@ impl Primitive {
 pub struct GeometricPrimitive {
     shape: Arc<Shape>,
     material: Option<Arc<Material>>,
-    area_light: Option<Arc<AreaLight>>,
+    area_light: Option<Arc<Light>>,
     medium_interface: MediumInterface
 }
 
 impl GeometricPrimitive {
-    pub fn init(shape: Arc<Shape>, material: Option<Arc<Material>>, area_light: Option<Arc<AreaLight>>, medium_interface: MediumInterface) -> Self {
+    pub fn init(shape: Arc<Shape>, material: Option<Arc<Material>>, area_light: Option<Arc<Light>>, medium_interface: MediumInterface) -> Self {
         Self {
             shape,
             material,
@@ -96,7 +105,7 @@ impl GeometricPrimitive {
 
     pub fn get_shape(&self) -> &Arc<Shape> { &self.shape }
     pub fn get_material(&self) -> &Option<Arc<Material>> { &self.material }
-    pub fn get_area_light(&self) -> &Option<Arc<AreaLight>> { &self.area_light }
+    pub fn get_area_light(&self) -> &Option<Arc<Light>> { &self.area_light }
     pub fn get_medium_interface(&self) -> &MediumInterface { &self.medium_interface }
     
     pub fn intersect(&self, ray: &Ray, isect: &mut SurfaceInteraction) -> bool {
@@ -137,11 +146,24 @@ impl GeometricPrimitive {
 
         let mut primitives: Vec<Primitive> = Vec::new();
 
+        let light = match param.get_lead_object("light") {
+            Some(LeadObject::Light(light)) => Some(light),
+            _ => None
+        };
+        
         for shape in shapes {
+            let shape_arc = Arc::new(shape);
+            let cur_light = match light.clone() {
+                Some(mut l) => {
+                    l.add_shape(shape_arc.clone()); 
+                    Some(Arc::new(l))},
+                None => None
+            };
+
             let gp = Self {
-                shape: Arc::new(shape),
+                shape: shape_arc,
                 material: mat.clone(),
-                area_light: None,
+                area_light: cur_light,
                 medium_interface: MediumInterface::new()
             };
 

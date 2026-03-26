@@ -33,6 +33,9 @@ impl Scene {
 
     pub fn add_primitives(&mut self, primitives: Vec<Primitive>) {
         for prim in primitives {
+            if let Some(area) = prim.get_area_light() {
+                self.lights.push(area.clone());
+            }
             self.primitives.push(Arc::new(prim));
         }
     }

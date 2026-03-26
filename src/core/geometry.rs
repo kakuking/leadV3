@@ -360,3 +360,15 @@ impl FloorCeil for Point2 {
         self.map(|x| x.ceil())
     }
 }
+
+pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vector3 {
+    Vector3::new(
+        sin_theta * phi.cos(),
+        sin_theta * phi.sin(),
+        cos_theta
+    )
+}
+
+pub fn spherical_direction_with_ref(sin_theta: f32, cos_theta: f32, phi: f32, x: &Vector3, y: &Vector3, z: &Vector3) -> Vector3 {
+    sin_theta * phi.cos() * x + sin_theta * phi.sin() * y + cos_theta * z
+}

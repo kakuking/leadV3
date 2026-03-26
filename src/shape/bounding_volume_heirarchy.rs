@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use crate::{core::{bounds::Bounds3, Point3, Ray, Vector3, interaction::{InteractionT, TransportMode}, material::Material, primitive::Primitive}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight};
+use crate::{core::{Point3, Ray, Vector3, bounds::Bounds3, interaction::{InteractionT, TransportMode}, light::Light, material::Material, primitive::Primitive}, interaction::surface_interaction::SurfaceInteraction};
 
 #[derive(Debug)]
 pub enum SplitMethod {
@@ -347,7 +347,7 @@ impl BVHAccel {
         panic!("Should not call this for a aggregate!")
     }
 
-    pub fn get_area_light(&self) -> Option<Arc<AreaLight>> {
+    pub fn get_area_light(&self) -> Option<Arc<Light>> {
         panic!("Should not call this for a aggregate!")
     }
 
@@ -385,11 +385,6 @@ impl BVHAccel {
                         }
                     }
 
-                    // if to_visit_offset == 0 {
-                    //     break;
-                    // }
-                    // current_node_idx = nodes_to_visit[to_visit_offset-1];
-                    // to_visit_offset -= 1;
                     match nodes_to_visit.pop() {
                         Some(next_idx) => current_node_idx = next_idx,
                         None => break,
@@ -399,30 +394,14 @@ impl BVHAccel {
                     let second_child = node.second_child_offset.expect("Interior BVH node missing second child offset");
 
                     if dir_is_neg[node.axis] == 1{
-                        // if let Some(next_offset) = node.second_child_offset {
-                        //     nodes_to_visit[to_visit_offset] = current_node_idx + 1;
-                        //     to_visit_offset += 1;
-                        //     current_node_idx = next_offset;
-                        // }
                         nodes_to_visit.push(current_node_idx + 1);
                         current_node_idx = second_child;
                     } else {
-                        // if let Some(next_offset) = node.second_child_offset {
-                        //     nodes_to_visit[to_visit_offset] = next_offset;
-                        //     to_visit_offset += 1; 
-                        //     current_node_idx += 1;
-                        // }
                         nodes_to_visit.push(second_child);
                         current_node_idx += 1;
                     }
                 }
             } else {
-                // if to_visit_offset == 0 {
-                //     break;
-                // }
-
-                // to_visit_offset -= 1;
-                // current_node_idx = nodes_to_visit[to_visit_offset];
                 match nodes_to_visit.pop() {
                     Some(next_idx) => current_node_idx = next_idx,
                     None => break

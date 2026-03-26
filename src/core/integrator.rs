@@ -62,11 +62,13 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
             (sample_extent.x + tile_size - 1.0) / tile_size,
             (sample_extent.y + tile_size - 1.0) / tile_size,
         );
-        
-        for ty in 0..n_tiles.y as usize {
-        for tx in 0..n_tiles.x as usize {
-            let tile = Point2::new(tx as f32, ty as f32);
 
+        let tile_for_bounds = Bounds2::init_two(
+            &Point2::origin(), 
+            &n_tiles
+        );
+        
+        for tile in &tile_for_bounds{
             let seed = tile.y * n_tiles.x + tile.x;
             let mut tile_sampler = self.get_sampler().clone_with_seed(seed as usize);
 
@@ -81,12 +83,9 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
                 &Point2::new(x1, y1) 
             );
 
-            let mut film_tile = self.get_mut_camera().get_film().get_film_tile(&tile_bounds);
+            let mut film_tile = self.get_camera().get_film().get_film_tile(&tile_bounds);
 
-            for py in tile_bounds.p_min.y as usize..tile_bounds.p_max.y as usize {
-            for px in tile_bounds.p_min.x as usize..tile_bounds.p_max.x as usize {
-                let pixel = Point2::new(px as f32, py as f32);
-
+            for pixel in &tile_bounds{
                 tile_sampler.start_pixel(pixel.clone());
 
                 'per_pixel_sample: loop {
@@ -120,12 +119,12 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
                         break 'per_pixel_sample;
                     }
                 }
-            }}
+            }
 
             self.get_mut_camera().get_film().merge_film_tile(&film_tile);
-        }}
+        }
         
-        self.get_mut_camera().get_film().write_image(1.0);
+        self.get_mut_camera().get_mut_film().write_image(1.0);
     }
 
     fn preprocess(&mut self, _scene: &Scene, _sampler: &mut Sampler) {}

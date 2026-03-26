@@ -61,10 +61,12 @@
             <translate value="-2, 0, 0"/>
         </shape>
 
+        <!-- <light type="diffuse"/> -->
+        
         <material type="matte">
             <vector3 name="color" value="0.0, 1.0, 1.0"/>
         </material>
     </primitive>
-
+    
     <light type="point"/>
 </scene>

@@ -51,7 +51,8 @@ impl CameraT for OrthographicCamera {
     fn get_medium(&self) -> Option<Arc<Medium>> { self.base.medium.clone() }
     fn get_shutter_open(&self) -> f32 { self.base.shutter_open }
     fn get_shutter_close(&self) -> f32 { self.base.shutter_close }
-    fn get_film(&mut self) -> &mut Film { &mut self.base.film }
+    fn get_mut_film(&mut self) -> &mut Film { &mut self.base.film }
+    fn get_film(&self) -> &Film { &self.base.film }
     fn get_camera_to_world(&self) -> Transform { self.base.camera_to_world }
 
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32 {

@@ -236,7 +236,7 @@ impl Film {
         )
     }
 
-    pub fn get_film_tile(&mut self, sample_bounds: &Bounds2) -> FilmTile {
+    pub fn get_film_tile(&self, sample_bounds: &Bounds2) -> FilmTile {
         let half_pixel = Vector2::new(0.5, 0.5);
         let float_bounds = sample_bounds.clone();
 
@@ -326,9 +326,7 @@ impl Film {
         let mut offset: usize = 0;
         let pixels = self.pixels.lock().unwrap();
 
-        for y in self.cropped_pixel_bounds.p_min.y as usize..self.cropped_pixel_bounds.p_max.y as usize {
-        for x in self.cropped_pixel_bounds.p_min.x as usize..self.cropped_pixel_bounds.p_max.x as usize {
-            let p = Point2::new(x as f32, y as f32);
+        for p in &self.cropped_pixel_bounds {
             let pixel_offset = self.get_pixel_offset(&p);
             let pixel = &pixels[pixel_offset];
 
@@ -360,7 +358,7 @@ impl Film {
             rgb[3*offset+2] *= self.scale;
 
             offset += 1;
-        }}
+        }
 
         match write_image(&self.filename, &rgb, self.cropped_pixel_bounds.clone(), self.full_resolution) {
             Ok(_) => println!("Successfully saved image to {}", &self.filename),
@@ -371,9 +369,7 @@ impl Film {
     pub fn clear(&mut self) {
         let mut pixels = self.pixels.lock().unwrap();
 
-        for y in self.cropped_pixel_bounds.p_min.y as usize..self.cropped_pixel_bounds.p_max.y as usize {
-        for x in self.cropped_pixel_bounds.p_min.x as usize..self.cropped_pixel_bounds.p_max.x as usize {
-            let p = Point2::new(x as f32, y as f32);
+        for p in &self.cropped_pixel_bounds {
             let pixel_offset = self.get_pixel_offset(&p);
             let pixel = &mut pixels[pixel_offset];
 
@@ -383,7 +379,7 @@ impl Film {
             }
 
             pixel.filter_weight_sum = 0.0;
-        }}
+        }
     }
 
     fn get_pixel_offset(&self, p: &Point2) -> usize {

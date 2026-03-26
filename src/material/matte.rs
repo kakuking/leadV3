@@ -68,6 +68,8 @@ impl MaterialT for MatteMaterial {
                 //     );
             }
             // si.bsdf = Some(bsdf);
+        } else {
+            si.bsdf = None;
         }
     }
 }

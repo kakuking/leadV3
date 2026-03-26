@@ -1,4 +1,4 @@
-use crate::{core::{bounds::Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, gamma, interaction::{Interaction, InteractionBase}, quadratic, random::uniform_sample_sphere, shape::{Shape, ShapeT}}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, bounds::Bounds3, coordinate_system, gamma, interaction::{Interaction, InteractionBase, InteractionT}, offset_ray_origin, quadratic, random::{uniform_cone_pdf, uniform_sample_sphere}, shape::{Shape, ShapeT}, spherical_direction_with_ref}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
@@ -149,7 +149,7 @@ impl ShapeT for Sphere {
         self.phi_max * self.radius * (self.z_max - self.z_min)
     }
 
-    fn sample(&self, u: &Point2) -> Interaction {
+    fn sample(&self, u: &Point2, pdf: &mut f32) -> InteractionBase {
         let mut p_obj = Point3::origin() + self.radius * uniform_sample_sphere(u);
         let mut it = InteractionBase::new();
 
@@ -165,7 +165,99 @@ impl ShapeT for Sphere {
 
         it.p = self.object_to_world.transform_point(&p_obj);
 
-        Interaction::Base(it)
+        it.p_error = p_obj_error;
+
+        *pdf = self.pdf();
+
+        it
+    }
+
+    fn sample_interaction(&self, re: &InteractionBase, u: &Point2, pdf: &mut f32) -> InteractionBase {
+        let p_center = self.object_to_world.transform_point(&Point3::origin());
+
+        let p_origin = offset_ray_origin(&re.p, &re.p_error, &re.n, &(p_center - re.p));
+
+        if (p_origin - p_center).norm_squared() <= self.radius * self.radius {
+            let its = self.sample(u, pdf);
+            let mut wi = its.p - re.p;
+
+            if wi.norm_squared() == 0.0 {
+                *pdf = 0.0;
+            } else {
+                wi = wi.normalize();
+                *pdf = (re.p - its.p).norm_squared() / (its.n.dot(&-wi).abs());
+            }
+
+            if pdf.is_infinite() {
+                *pdf = 0.0;
+            }
+
+            return its;
+        }
+
+        let dc = (re.p - p_center).norm();
+        let inv_dc = 1.0 / dc;
+        let wc = (p_center - re.p) * inv_dc;
+        let mut wc_x: Vector3 = Vector3::zeros();
+        let mut wc_y: Vector3 = Vector3::zeros();
+        coordinate_system(&wc, &mut wc_x, &mut wc_y);
+
+        let sin_theta_max = self.radius * inv_dc;
+        let sin_theta_max2 = sin_theta_max * sin_theta_max;
+        let inv_sin_theta_max = 1.0 / sin_theta_max;
+        let cos_theta_max = (1.0 - sin_theta_max2).max(0.0).sqrt();
+
+        let mut cos_theta = (cos_theta_max - 1.0) * u.x + 1.0;
+        let mut sin_theta2 = 1.0 - cos_theta*cos_theta;
+
+        if sin_theta_max2 < 0.00068523 {
+            sin_theta2 = sin_theta_max2 * u.x;
+            cos_theta = (1.0 - sin_theta2).sqrt();
+        }
+
+        let cos_alpha = sin_theta2 * inv_sin_theta_max + cos_theta * (1.0 - sin_theta2 * inv_sin_theta_max * inv_sin_theta_max).max(0.0).sqrt();
+        let sin_alpha = (1.0 - cos_alpha*cos_alpha).max(0.0).sqrt();
+
+        let phi = u.y * 2.0 * PI;
+
+        let n_world = spherical_direction_with_ref(sin_alpha, cos_alpha, phi, &-wc_x, &-wc_y, &-wc);
+        let p_world = p_center + self.radius * n_world;
+
+        let mut its = InteractionBase::new();
+        its.p = p_world;
+        its.p_error = gamma(5.0) * p_world.coords.map(|x| x.abs());
+        its.n = n_world;
+        if self.reverse_orientation {
+            its.n *= -1.0;
+        }
+
+        its
+    }
+
+    fn pdf_interaction(&self, re: &InteractionBase, wi: &Vector3) -> f32 {
+        let p_center = self.object_to_world.transform_point(&Point3::origin());
+
+        let p_origin = offset_ray_origin(&re.p, &re.p_error, &re.n, &(p_center - re.p));
+
+        if (p_origin - p_center).norm_squared() <= self.radius * self.radius {
+            // copied from shape base pdf_interaction
+            let ray = re.spawn_ray(wi);
+            let mut t_hit = 0.0;
+            let mut isect_light = SurfaceInteraction::new();
+
+            if !self.intersect(&ray, &mut t_hit, &mut isect_light, Some(false)) {
+                return 0.0;
+            }
+
+            let pdf = (re.p - isect_light.get_p()).norm_squared() / (isect_light.get_n().dot(&(-wi)).abs() * self.area());
+
+            return pdf;
+        } 
+
+        let sin_theta_max2 = self.radius * self.radius / (re.p - p_center).norm_squared();
+        let cos_theta_max = (1.0 - sin_theta_max2).max(0.0).sqrt();
+        
+        uniform_cone_pdf(cos_theta_max)
     }
 }
 

@@ -50,9 +50,17 @@ impl SamplerIntegrator for DirectIntegrator {
 
         its.compute_scattering_functions(ray, true, TransportMode::Radiance);
 
-        if let Some(bsdf) = &its.bsdf {
-            return bsdf.f(its.get_wo(), &-ray.d, None);
+        if its.bsdf.is_none() {
+            return self.li(&its.spawn_ray(&ray.d), scene, sampler, depth);
         }
+
+        let wo = its.get_wo();
+
+        l += its.le(&wo);
+        
+        // if let Some(bsdf) = &its.bsdf {
+        //     return bsdf.f(its.get_wo(), &-ray.d, None);
+        // } 
 
         Spectrum::x()   // Just everything red
     }

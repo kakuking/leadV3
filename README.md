@@ -34,5 +34,6 @@ Output of the intersection renderer (incomplete direct renderer), which outputs 
 - [x] Added Normal Integrator
 - [x] Scene handles primitives not shapes now
 - [x] Fixed a bug in computing bsdf at intersected
+- [x] Added Area Light and Diffuse Area Light
 - [ ] Finish direct integrator
 - [ ] Add more lights, integrators, and so on...

@@ -38,7 +38,21 @@ impl Camera {
         }
     }
 
-    pub fn get_film(&mut self) -> &mut Film {
+    pub fn get_tile(&self) -> &Film {
+        match self {
+            Self::Orthographic(cam) => cam.get_film(),
+            _ => panic!("This camera type is not implemented")
+        }
+    }
+
+    pub fn get_mut_film(&mut self) -> &mut Film {
+        match self {
+            Self::Orthographic(cam) => cam.get_mut_film(),
+            _ => panic!("This camera type is not implemented")
+        }
+    }
+    
+    pub fn get_film(&self) -> &Film {
         match self {
             Self::Orthographic(cam) => cam.get_film(),
             _ => panic!("This camera type is not implemented")
@@ -127,7 +141,8 @@ pub trait CameraT: Manufacturable<Camera> + Printable {
     fn get_medium(&self) -> Option<Arc<Medium>>;
     fn get_shutter_open(&self) -> f32;
     fn get_shutter_close(&self) -> f32;
-    fn get_film(&mut self) -> &mut Film;
+    fn get_mut_film(&mut self) -> &mut Film;
+    fn get_film(&self) -> &Film;
     fn get_camera_to_world(&self) -> Transform;
     
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32;
