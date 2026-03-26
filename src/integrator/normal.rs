@@ -48,12 +48,6 @@ impl SamplerIntegrator for NormalIntegrator {
             return l;
         }
 
-
-        match &its.bsdf {
-            Some(bsdf) => println!("Bsdf: {:?}", bsdf),
-            None => println!("Nop BSDF") 
-        };
-
         its.get_n().clone().map(|x| x.abs())
     }
 

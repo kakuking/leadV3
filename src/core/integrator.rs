@@ -1,4 +1,4 @@
-use crate::{core::{Bounds2, Point2, Printable, Ray, camera::Camera, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{direct::DirectIntegrator, normal::NormalIntegrator}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{bounds::Bounds2, Point2, Printable, Ray, camera::Camera, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{direct::DirectIntegrator, normal::NormalIntegrator}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub enum Integrator {
     Direct(DirectIntegrator),

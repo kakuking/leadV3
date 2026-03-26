@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Printable, Ray, light::Light, primitive::{Primitive}, sampler::Sampler, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
+use crate::{core::{bounds::Bounds3, Printable, Ray, light::Light, primitive::{Primitive}, sampler::Sampler, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
 
 pub struct Scene {
     pub lights: Vec<Arc<Light>>,

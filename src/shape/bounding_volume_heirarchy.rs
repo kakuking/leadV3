@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use crate::{core::{Bounds3, Point3, Ray, Vector3, interaction::{InteractionT, TransportMode}, material::Material, primitive::Primitive}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight};
+use crate::{core::{bounds::Bounds3, Point3, Ray, Vector3, interaction::{InteractionT, TransportMode}, material::Material, primitive::Primitive}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight};
 
 #[derive(Debug)]
 pub enum SplitMethod {

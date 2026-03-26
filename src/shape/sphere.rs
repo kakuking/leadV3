@@ -1,4 +1,4 @@
-use crate::{core::{Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, gamma, interaction::{Interaction, InteractionBase}, quadratic, random::uniform_sample_sphere, shape::{Shape, ShapeT}}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{bounds::Bounds3, EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, gamma, interaction::{Interaction, InteractionBase}, quadratic, random::uniform_sample_sphere, shape::{Shape, ShapeT}}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct Sphere {

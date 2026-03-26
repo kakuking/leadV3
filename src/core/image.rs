@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-use crate::core::{Bounds2, Point2};
+use crate::core::{bounds::Bounds2, Point2};
 
 #[derive(Debug)]
 pub enum WriteImageError {

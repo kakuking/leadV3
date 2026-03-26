@@ -1,4 +1,4 @@
-use crate::{core::{Bounds3, Point2, Printable, Ray, Transform, Vector3, apply_transform_to_bounds, interaction::{Interaction, InteractionT}, transform_swaps_handedness}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, shape::triangle_mesh::Triangle};
+use crate::{core::{Point2, Printable, Ray, Transform, Vector3, apply_transform_to_bounds, bounds::Bounds3, interaction::{Interaction, InteractionT}, transform_swaps_handedness}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, shape::triangle_mesh::Triangle};
 
 use crate::shape::{Sphere};
 

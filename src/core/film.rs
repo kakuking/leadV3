@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use atomic_float::AtomicF32;
 
-use crate::{core::{Bounds2, Point2, Vector2, filter::Filter, image::{write_image, write_ppm}, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}}, loader::Parameters, registry::{LeadObject, Manufacturable}};
+use crate::{core::{bounds::Bounds2, Point2, Vector2, filter::Filter, image::{write_image, write_ppm}, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}}, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 use std::sync::atomic::Ordering;
 
@@ -220,7 +220,7 @@ impl Film {
 
     pub fn get_sample_bounds(&self) -> Bounds2 {
         let p_min: Point2 = (self.cropped_pixel_bounds.p_min + Vector2::new(0.5, 0.5) - self.filter.get_radius()).map(|x| x.floor());
-        let p_max = (self.cropped_pixel_bounds.p_max - Vector2::new(0.5, 0.5) - self.filter.get_radius()).map(|x| x.ceil());
+        let p_max = (self.cropped_pixel_bounds.p_max - Vector2::new(0.5, 0.5) + self.filter.get_radius()).map(|x| x.ceil());
 
         Bounds2::init_two(&p_min, &p_max)
     }
@@ -361,19 +361,6 @@ impl Film {
 
             offset += 1;
         }}
-
-        // match write_image(&self.filename, &rgb, self.cropped_pixel_bounds.clone() , self.full_resolution) {
-        //     Ok(_) => {println!("Successfuly saved image to {}", &self.filename)},
-        //     _ => {println!("Could not save image to {}", &self.filename)}
-        // };
-
-        let width = (self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x) as usize;
-        let height = (self.cropped_pixel_bounds.p_max.y - self.cropped_pixel_bounds.p_min.y) as usize;
-
-        // match write_ppm(&self.filename, &rgb, width, height) {
-        //     Ok(_) => println!("Successfully saved image to {}", &self.filename),
-        //     Err(e) => println!("Could not save image to {}: {}", &self.filename, e),
-        // }
 
         match write_image(&self.filename, &rgb, self.cropped_pixel_bounds.clone(), self.full_resolution) {
             Ok(_) => println!("Successfully saved image to {}", &self.filename),

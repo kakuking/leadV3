@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
+use crate::{core::{bounds::Bounds3, Printable, Ray, interaction::{InteractionT, TransportMode}, material::{Material}, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, light::area_light::AreaLight, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
 
 #[derive(Debug, Clone)]
 pub enum Primitive {

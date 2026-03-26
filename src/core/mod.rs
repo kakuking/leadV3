@@ -18,6 +18,7 @@ pub mod bxdf;
 pub mod texture;
 pub mod integrator;
 pub mod random;
+pub mod bounds;
 
 pub mod lead_instance;
 

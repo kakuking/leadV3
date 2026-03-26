@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{camera::orthographic::OrthographicCamera, core::{Bounds2, Point2, Printable, Ray, RayDifferential, Transform, Vector3, film::Film, interaction::Interaction, light::VisibilityTester, medium::Medium, scaling, spectrum::Spectrum, translation}, registry::Manufacturable};
+use crate::{camera::orthographic::OrthographicCamera, core::{bounds::Bounds2, Point2, Printable, Ray, RayDifferential, Transform, Vector3, film::Film, interaction::Interaction, light::VisibilityTester, medium::Medium, scaling, spectrum::Spectrum, translation}, registry::Manufacturable};
 
 
 
