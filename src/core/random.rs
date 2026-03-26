@@ -94,3 +94,14 @@ pub fn uniform_sample_cone(u: &Point2, cos_theta_max: f32) -> Vector3 {
 pub fn uniform_cone_pdf(cos_theta_max: f32) -> f32 {
     1.0 / (2.0 * PI * (1.0 - cos_theta_max))
 }
+
+pub fn power_heuristic(nf: f32, f_pdf: f32, ng: f32, g_pdf: f32) -> f32 {
+    let f = nf * f_pdf;
+    let g = ng * g_pdf;
+
+    f * f / (f*f + g*g)
+}
+
+pub fn balance_heuristic(nf: f32, f_pdf: f32, ng: f32, g_pdf: f32) -> f32 {
+    (nf * f_pdf) / (nf * f_pdf + ng * g_pdf)
+}

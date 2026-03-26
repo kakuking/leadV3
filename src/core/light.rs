@@ -16,6 +16,11 @@ pub enum LightFlags {
     Infinite=8,
 }
 
+pub fn is_delta_light(flags: u32) -> bool {
+    flags & LightFlags::DeltaDirection as u32 != 0 ||
+    flags & LightFlags::DeltaPosition as u32 != 0
+}
+
 #[derive(Debug, Clone)]
 pub struct VisibilityTester {
     pub p0: InteractionBase,
@@ -23,6 +28,13 @@ pub struct VisibilityTester {
 }
 
 impl VisibilityTester {
+    pub fn new() -> Self {
+        Self {
+            p0: InteractionBase::new(),
+            p1: InteractionBase::new()
+        }
+    }
+
     pub fn init(p0: &InteractionBase, p1: &InteractionBase) -> Self {
         Self {
             p0: p0.clone(), 

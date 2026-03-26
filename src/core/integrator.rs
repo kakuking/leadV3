@@ -32,6 +32,38 @@ impl Integrator {
             Self::Empty => panic!("Set sampler called on empty integrator"),
         }
     }
+
+    pub fn preprocess(&mut self, scene: &Scene) {
+        match self {
+            Self::Direct(i) => i.preprocess(scene),
+            Self::Normal(i) => i.preprocess(scene),
+            Self::Empty => panic!("preprocess called on empty integrator")
+        }
+    }
+    
+    pub fn li(&self, ray: &Ray, scene: &Scene, sampler: &mut Sampler, depth: Option<u32>) -> Spectrum {
+        match self {
+            Self::Direct(i) => i.li(ray, scene, sampler, depth),
+            Self::Normal(i) => i.li(ray, scene, sampler, depth),
+            Self::Empty => panic!("li called on empty integrator")
+        }
+    }
+
+    pub fn specular_reflect(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum {
+        match self {
+            Self::Direct(i) => i.specular_reflect(ray, its, scene, sampler, depth),
+            Self::Normal(i) => i.specular_reflect(ray, its, scene, sampler, depth),
+            Self::Empty => panic!("spec_reflect called on empty integrator")
+        }
+    }
+
+    pub fn specular_transmit(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum {
+        match self {
+            Self::Direct(i) => i.specular_transmit(ray, its, scene, sampler, depth),
+            Self::Normal(i) => i.specular_transmit(ray, its, scene, sampler, depth),
+            Self::Empty => panic!("spec_reflect called on empty integrator")
+        }
+    }
 }
 
 impl Printable for Integrator {
@@ -134,7 +166,7 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
         self.get_mut_camera().get_mut_film().write_image(1.0);
     }
 
-    fn preprocess(&mut self, _scene: &Scene, _sampler: &mut Sampler) {}
+    fn preprocess(&mut self, _scene: &Scene) {}
     fn li(&self, ray: &Ray, scene: &Scene, sampler: &mut Sampler, depth: Option<u32>) -> Spectrum;
     fn specular_reflect(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum;
     fn specular_transmit(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum;

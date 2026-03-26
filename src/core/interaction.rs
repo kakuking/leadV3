@@ -216,7 +216,7 @@ impl InteractionBase {
     pub fn spawn_ray_to_interaction(&self, it: &InteractionBase) -> Ray {
         let o = offset_ray_origin(&self.p, &self.p_error, &self.n, &(it.p - self.p));
         let t = offset_ray_origin(&it.p, &it.p_error, &it.n, &(o - it.p));
-        let d = t - o;
+        let d = (t - o).normalize();
 
         Ray::init(&o, &d, 1.0-EPSILON, self.time, self.get_medium(), None)
     }

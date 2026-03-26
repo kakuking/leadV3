@@ -65,7 +65,7 @@ impl LightT for PointLight {
 impl Manufacturable<Light> for PointLight {
     fn create_from_parameters(params: Parameters) -> Light {
         let light_to_world = params.get_transform();
-        let i = params.get_vector3("i", Some(Spectrum::new(1.0, 0.0, 0.0)));
+        let i = params.get_vector3("i", Some(Spectrum::new(5.0, 5.0, 5.0)));
 
         let mi = MediumInterface::new();
 

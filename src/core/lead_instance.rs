@@ -25,6 +25,10 @@ impl Instance {
 
     pub fn init_scene(&mut self) { self.scene.init(); }
 
+    pub fn preprocess(&mut self) {
+        self.integrator.preprocess(&self.scene);
+    }
+
     pub fn render(&mut self) {
         self.integrator.render(&self.scene);
     }

@@ -19,18 +19,18 @@ impl SamplerIntegrator for NormalIntegrator {
     fn get_mut_camera(&mut self) -> &mut Camera { &mut self.camera }
     fn get_mut_sampler(&mut self) -> &mut Sampler { &mut self.sampler }
 
-    fn preprocess(&mut self, scene: &Scene, sampler: &mut Sampler) {
+    fn preprocess(&mut self, scene: &Scene) {
         if self.strategy == LightStrategy::UniformSampleAll {
             for light in &scene.lights {
                 self.n_light_samples.push(
-                    sampler.round_count(light.get_n_samples() as usize)
+                    self.sampler.round_count(light.get_n_samples() as usize)
                 );
             }
 
             for _ in 0..self.max_depth {
                 for j in 0..scene.lights.len() {
-                    sampler.request_2d_array(self.n_light_samples[j]);
-                    sampler.request_2d_array(self.n_light_samples[j]);
+                    self.sampler.request_2d_array(self.n_light_samples[j]);
+                    self.sampler.request_2d_array(self.n_light_samples[j]);
                 }
             }
         }

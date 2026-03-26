@@ -58,6 +58,7 @@ fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
     };
 
     instance.init_scene();
+    instance.preprocess();
 
     let integrator = instance.get_integrator();
 
