@@ -1,5 +1,7 @@
 use crate::{core::{bounds::Bounds2, Point2, Printable, Ray, camera::Camera, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{direct::DirectIntegrator, normal::NormalIntegrator}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
+use rayon::prelude::*;
+
 pub enum Integrator {
     Direct(DirectIntegrator),
     Normal(NormalIntegrator),
@@ -52,7 +54,10 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
     fn get_mut_sampler(&mut self) -> &mut Sampler;
 
     // From integrator
-    fn render(&mut self, scene: &Scene) {
+    fn render(&mut self, scene: &Scene)
+    where
+    Self: Sync
+    {
         let sample_bounds = self.get_mut_camera().get_film().get_sample_bounds();
         let sample_extent = sample_bounds.diagonal();
 
@@ -67,8 +72,11 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
             &Point2::origin(), 
             &n_tiles
         );
-        
-        for tile in &tile_for_bounds{
+
+        let tiles: Vec<Point2> = (&tile_for_bounds).into_iter().collect();
+
+        // for tile in &tile_for_bounds{
+        tiles.par_iter().for_each(|tile| {
             let seed = tile.y * n_tiles.x + tile.x;
             let mut tile_sampler = self.get_sampler().clone_with_seed(seed as usize);
 
@@ -120,9 +128,8 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
                     }
                 }
             }
-
-            self.get_mut_camera().get_film().merge_film_tile(&film_tile);
-        }
+            self.get_camera().get_film().merge_film_tile(&film_tile);
+        });
         
         self.get_mut_camera().get_mut_film().write_image(1.0);
     }

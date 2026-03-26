@@ -1,3 +1,6 @@
+use std::thread;
+use std::time::Instant;
+
 use crate::core::primitive::GeometricPrimitive;
 use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::registry::{Registry, Manufacturable};
@@ -41,7 +44,14 @@ pub mod texture;
 pub mod integrator;
 pub mod material;
 
-fn load_scene_and_render_hit_ppm(registry: &Registry) {
+fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
+    let num_threads = num_threads.min(thread::available_parallelism().unwrap().get());
+    
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(num_threads)
+        .build()
+        .unwrap();
+
     let mut instance = match loader::parse_xml("sample_scene.xml", registry) {
         Some(s) => s,
         _ => panic!("No scene found!"),
@@ -52,10 +62,19 @@ fn load_scene_and_render_hit_ppm(registry: &Registry) {
     let integrator = instance.get_integrator();
 
     println!("Integrator: {}", integrator.to_string());
-
     println!("Rendering...");
 
-    instance.render();
+    let duration = {
+        let start = Instant::now();
+
+        pool.install(|| {
+            instance.render();
+        });
+
+        start.elapsed()
+    };
+
+    println!("Rendered with {} threads in - {:?}", num_threads, duration);
 }
 
 fn main() {
@@ -152,5 +171,5 @@ fn main() {
         })
     );
 
-    load_scene_and_render_hit_ppm(&registry);
+    load_scene_and_render_hit_ppm(&registry, 20);
 }

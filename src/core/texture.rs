@@ -18,7 +18,7 @@ pub trait TextureMapping2DT {
     fn map(&self, si: &SurfaceInteraction, dsdtx: &mut Vector2, dsdty: &mut Vector2) -> Point2;
 }
 
-pub trait Texture<T>: Debug {
+pub trait Texture<T>: Debug + Send + Sync {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;
 }
 
@@ -35,7 +35,7 @@ impl<T: Debug + Clone> ConstantTexture<T> {
     }
 }
 
-impl<T: Debug + Clone> Texture<T> for ConstantTexture<T> {
+impl<T: Debug + Clone + Send + Sync> Texture<T> for ConstantTexture<T> {
     fn evaluate(&self, _si: &SurfaceInteraction) -> T {
         self.value.clone()
     }

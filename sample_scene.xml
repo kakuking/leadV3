@@ -15,7 +15,7 @@
         <float name="extent" value="2"/>
 
         <film type="film" name="film">
-            <point2 name="resolution" value="512, 512"/>
+            <point2 name="resolution" value="1024, 1024"/>
             <string name="filename" value="output.png"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>
