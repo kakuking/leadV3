@@ -4,7 +4,7 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
 ## Sample outputs of the renderer (512x512 / 4 samples per pixel)
 Output of the direct lighting integrator
-![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/c76734bad8a16ffc34f7b4ee174aa48c6e2ab947/z_output/direct.png)
+![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/69db778bbe404f57cd3282b10430d69574dca5c2/z_output/direct.png)
 
 Output of the normal renderer, which on intersection, converts the normal at intersection point to a color
 ![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/4447d525c2316d0460d7f4fc8f4ab80cc32280de/output/normal.png)
