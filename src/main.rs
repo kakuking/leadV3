@@ -63,6 +63,7 @@ fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
     let integrator = instance.get_integrator();
 
     println!("Integrator: {}", integrator.to_string());
+    println!("Scene: {}", instance.scene.to_string());
     println!("Rendering...");
 
     let duration = {

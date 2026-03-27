@@ -54,7 +54,7 @@ impl BSDF {
 
         for i in 0..self.n_bxdfs {
             let typ = self.bxdfs[i].get_type();
-            if typ.contains(flags) {
+            if flags.contains(typ) {
                 ret += 1;
             }
         }
@@ -104,10 +104,10 @@ impl BSDF {
         wi_world: &mut Vector3,
         u: &Point2,
         pdf: &mut f32,
-        typ: &BxDFType,
+        typ: BxDFType,
         flags: &mut BxDFType,
     ) -> Spectrum {
-        let matching_comps = self.num_components(*typ);
+        let matching_comps = self.num_components(typ);
         if matching_comps == 0 {
             *pdf = 0.0;
             return Spectrum::zeros();
@@ -120,7 +120,7 @@ impl BSDF {
         let mut count = comp;
 
         for i in 0..self.n_bxdfs {
-            if self.bxdfs[i].matches_flags(*typ) {
+            if self.bxdfs[i].matches_flags(typ) {
                 if count == 0 {
                     chosen = Some((i, &self.bxdfs[i]));
                     break;
@@ -141,7 +141,7 @@ impl BSDF {
 
         *flags = cur_bxdf.get_type();
         
-        let mut f = cur_bxdf.sample_f(&wo, &mut wi, &u_remapped, pdf, Some(*typ));
+        let mut f = cur_bxdf.sample_f(&wo, &mut wi, &u_remapped, pdf, Some(typ));
 
         if *pdf == 0.0 {
             return Spectrum::zeros();
@@ -152,7 +152,7 @@ impl BSDF {
         // Compute overall PDF with all matching BxDFs
         if !cur_bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps > 1 {
             for i in 0..self.n_bxdfs {
-                if i != cur_bxdf_idx && self.bxdfs[i].matches_flags(*typ) {
+                if i != cur_bxdf_idx && self.bxdfs[i].matches_flags(typ) {
                     *pdf += self.bxdfs[i].pdf(&wo, &wi);
                 }
             }
@@ -168,7 +168,7 @@ impl BSDF {
             f = Spectrum::zeros();
 
             for i in 0..self.n_bxdfs {
-                if self.bxdfs[i].matches_flags(*typ)
+                if self.bxdfs[i].matches_flags(typ)
                     && ((reflect && self.bxdfs[i].get_type().contains(BxDFType::BSDF_REFLECTION))
                         || (!reflect
                             && self.bxdfs[i].get_type().contains(BxDFType::BSDF_TRANSMISSION)))

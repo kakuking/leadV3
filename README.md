@@ -15,7 +15,7 @@ Output of the intersection renderer (incomplete direct renderer), which outputs 
 - [x] Added Basic Maths 
 - [x] Added Vectors, Normals, Points, Bounding Boxes
 - [x] Added Interaction and Surface Interactions
-- [x] Added Shapes
+- [x] Added Shapes[[](https://github.com/kakuking/leadV3/blob/3a8fa18cfd6c1d0e0e57859c2f1d9634da59a0d7/z_output/direct.png)](https://github.com/kakuking/leadV3/blob/3a8fa18cfd6c1d0e0e57859c2f1d9634da59a0d7/z_output/direct.png)
 - [x] Added Sphere
 - [x] Added XML loading
 - [x] Add meshes

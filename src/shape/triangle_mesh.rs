@@ -238,7 +238,7 @@ impl Manufacturable<Shape> for Triangle {
 impl ShapeT for Triangle {
     fn get_object_to_world(&self) -> &Transform { &self.mesh.object_to_world }
     fn get_world_to_object(&self) -> &Transform { panic!("Dont call get_world_to_object on a triangle"); }
-    fn get_reverse_orientation(&self) -> bool { panic!("Dont call get_reverse_orientation on a triangle"); }
+    fn get_reverse_orientation(&self) -> bool { false }
 
     fn object_bounds(&self) -> Bounds3 {
         self.world_bounds()

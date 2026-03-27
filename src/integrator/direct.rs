@@ -142,7 +142,7 @@ fn uniform_sample_all_lights(it: &Interaction, scene: &Scene, sampler: &mut Samp
         } else {
             let mut ld = Spectrum::zeros();
             for k in 0..n_samples {
-                ld = estimate_direct(it, &u_scattering_array[k], light, &u_light_array[k], scene, sampler, handle_media, false);
+                ld += estimate_direct(it, &u_scattering_array[k], light, &u_light_array[k], scene, sampler, handle_media, false);
             }
 
             l += ld / n_samples as f32;
@@ -194,13 +194,14 @@ fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, 
                 f = match &s.bsdf {
                     Some(bsdf) => {
                         // println!("Found bsdf, calling .f");
-                        bsdf.f(&s.get_wo(), &wi, Some(bsdf_flags))
+                        scattering_pdf = bsdf.pdf(s.get_wo(), &wi, Some(bsdf_flags));
+                        bsdf.f(&s.get_wo(), &wi, Some(bsdf_flags)) * wi.dot(&s.shading.n).abs()
                     },
                     None => {
                         eprintln!("No BSDF found in estimate direct");
                         Spectrum::zeros()
                     }
-                }
+                };
             },
             _ => panic!("Medium Interaction not implemented yet")
         }
@@ -225,13 +226,14 @@ fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, 
                 } else {
                     let weight = power_heuristic(1.0, light_pdf, 1.0, scattering_pdf);
                     ld += f.component_mul(&li) * weight / light_pdf;
-                    // println!("Is not a delta light, ld: {:?}", ld);
+                    // println!("Is not a delta light,f: {:?}, li: {:?}, weight: {}, ld: {:?}",f, li, weight, ld);
                 }
             }
         }
     }
 
     if !is_delta_light(light.get_flags() as u32) {
+        // println!("Not a delta light");
         let mut f = Spectrum::zeros();
         let mut sampled_specular = false;
 
@@ -240,9 +242,11 @@ fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, 
                 let mut sampled_type: BxDFType = BxDFType::empty();
                 match &s.bsdf {
                     Some(bsdf) => {
-                        f = bsdf.sample_f(&s.get_wo(), &mut wi, u_scattering, &mut scattering_pdf, &mut bsdf_flags, &mut sampled_type);
+                        // println!("Sampling f");
+                        f = bsdf.sample_f(&s.get_wo(), &mut wi, u_scattering, &mut scattering_pdf, bsdf_flags, &mut sampled_type);
                         f *= wi.dot(&s.shading.n).abs();
                         sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
+                        // println!("f: {:?}, scat_pdf: {}", f, scattering_pdf);
                     },
                     _ => panic!("No BSDF found on interaction")
                 }
@@ -251,6 +255,7 @@ fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, 
         }
 
         if f != Spectrum::zeros() && scattering_pdf > 0.0 {
+            // println!("F nonzera and +vs scat_pdf");
             let mut weight = 1.0;
 
             if !sampled_specular {
@@ -275,13 +280,19 @@ fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, 
 
             let mut li = Spectrum::zeros();
 
+            // println!("li: {:?}", li);
+            
             if found_surface_its {
-                if Arc::ptr_eq(&light_its.primitive.get_area_light().unwrap(), light) {
-                    li = light_its.le(&-wi);
+                if let Some(al) = light_its.primitive.get_area_light() {
+                    if Arc::ptr_eq(&al, light) {
+                        // println!("light equals light");
+                        li = light_its.le(&-wi);
+                    }
                 }
             } else {
                 li = light.le(&ray);
             }
+            // println!("li_now: {:?}", li);
 
             if li != Spectrum::zeros() {
                 ld += f.component_mul(&li).component_mul(&tr) * weight / scattering_pdf;
