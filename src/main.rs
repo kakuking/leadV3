@@ -1,6 +1,7 @@
 use std::thread;
 use std::time::Instant;
 
+use crate::camera::perspective::PerspectiveCamera;
 use crate::core::primitive::GeometricPrimitive;
 use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::registry::{Registry, Manufacturable};
@@ -52,7 +53,7 @@ fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
         .build()
         .unwrap();
 
-    let mut instance = match loader::parse_xml("sample_scene.xml", registry) {
+    let mut instance = match loader::parse_xml("cornell_box.xml", registry) {
         Some(s) => s,
         _ => panic!("No scene found!"),
     };
@@ -100,6 +101,13 @@ fn main() {
         "orthographic".to_string(),
         Box::new(|params| {
             OrthographicCamera::create_from_parameters(params)
+        }),
+    );
+
+    registry.register_camera(
+        "perspective".to_string(),
+        Box::new(|params| {
+            PerspectiveCamera::create_from_parameters(params)
         }),
     );
 
