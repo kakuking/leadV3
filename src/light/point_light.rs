@@ -1,4 +1,4 @@
-use crate::{core::{Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::{Interaction, InteractionBase}, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
+use crate::{core::{Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionBase, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct PointLight {
@@ -35,7 +35,7 @@ impl LightT for PointLight {
     fn get_light_to_world(&self) -> Transform { self.light_to_world }
     fn get_world_to_light(&self) -> Transform { self.world_to_light }
 
-    fn sample_li(&self, re: &InteractionBase, u: &Point2, wi: &mut Vector3, pdf: &mut f32, vis: &mut VisibilityTester) -> Spectrum {
+    fn sample_li(&self, re: &InteractionBase, _u: &Point2, wi: &mut Vector3, pdf: &mut f32, vis: &mut VisibilityTester) -> Spectrum {
         *wi = (self.p_light - re.p).normalize();
         *pdf = 1.0;
 
@@ -53,11 +53,11 @@ impl LightT for PointLight {
 
     fn pdf_li(&self, _re: &InteractionBase, _wi: &Vector3) -> f32 { 0.0 }
     
-    fn sample_le(&self, u1: &Point2, u2: &Point2, time: f32, ray: &mut Ray, n_light: &mut Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
+    fn sample_le(&self, _u1: &Point2, _u2: &Point2, _time: f32, _ray: &mut Ray, _n_light: &mut Normal3, _pdf_pos: &mut f32, _pdf_dir: &mut f32) -> Spectrum {
         todo!("PointLight::Sample_Le")
     }
 
-    fn pdf_le(&self, ray: &Ray, n_light: &Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) {
+    fn pdf_le(&self, _ray: &Ray, _n_light: &Normal3, _pdf_pos: &mut f32, _pdf_dir: &mut f32) {
         todo!("PointLight::pdf_le");
     }
 }

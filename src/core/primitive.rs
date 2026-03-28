@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{Printable, Ray, bounds::Bounds3, interaction::{InteractionT, TransportMode}, light::{self, Light}, material::Material, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
+use crate::{core::{Printable, Ray, bounds::Bounds3, interaction::{InteractionT, TransportMode}, light::Light, material::Material, medium::MediumInterface, shape::Shape}, interaction::surface_interaction::SurfaceInteraction, registry::LeadObject, shape::bounding_volume_heirarchy::BVHAccel};
 
 #[derive(Debug, Clone)]
 pub enum Primitive {
@@ -46,7 +46,7 @@ impl Primitive {
         match self {
             Self::Empty => panic!("get_shape called on empty primitive"),
             Self::Geometric(g) => g.shape.clone(),
-            Self::BVH(b) => panic!("get_shape on BVH")
+            Self::BVH(_) => panic!("get_shape on BVH")
         }
     }
 

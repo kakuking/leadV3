@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{Printable, Vector2, spectrum::Spectrum, texture::{Texture, TextureMapping2D, TextureT}}, interaction::surface_interaction::SurfaceInteraction, registry::{LeadObject, Manufacturable}};
+use crate::{core::{Printable, spectrum::Spectrum, texture::{Texture, TextureT}}, interaction::surface_interaction::SurfaceInteraction, registry::{LeadObject, Manufacturable}};
 
 
 #[derive(Debug, Clone)]

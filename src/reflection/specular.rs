@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Normal3, Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, cos_theta, face_forward, interaction::TransportMode, spectrum::Spectrum}, reflection::fresnel::{Fresnel, FresnelDielectric, FresnelNoOp}, registry::{LeadObject, Manufacturable}};
+use crate::{core::{Normal3, Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, cos_theta, face_forward, interaction::TransportMode, spectrum::Spectrum}, reflection::fresnel::{Fresnel, FresnelDielectric, FresnelNoOp}, registry::{Manufacturable}};
 
 pub fn refract(wi: &Vector3, n: &Normal3, eta: f32, wt: &mut Vector3) -> bool {
     let cos_theta_i = n.dot(wi);

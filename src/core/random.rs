@@ -1,5 +1,3 @@
-use nalgebra::ComplexField;
-
 use crate::core::{INV_4PI, INV_PI, PI, Point2, Vector2, Vector3};
 
 pub fn uniform_sample_hemisphere(u: &Point2) -> Vector3 {

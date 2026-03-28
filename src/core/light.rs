@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Normal3, Point2, Printable, Ray, Transform, Vector3, interaction::{Interaction, InteractionBase, InteractionT}, medium::MediumInterface, sampler::Sampler, scene::Scene, shape::Shape, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, light::{diffuse_area_light::DiffuseAreaLight, point_light::PointLight}, registry::Manufacturable};
+use crate::{core::{Normal3, Point2, Printable, Ray, Transform, Vector3, interaction::{InteractionBase, InteractionT}, medium::MediumInterface, sampler::Sampler, scene::Scene, shape::Shape, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, light::{diffuse_area_light::DiffuseAreaLight, point_light::PointLight}, registry::Manufacturable};
 
 #[derive(PartialEq)]
 pub enum LightStrategy {

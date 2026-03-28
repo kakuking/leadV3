@@ -1,6 +1,6 @@
-use std::{cell::Cell, primitive, sync::Arc};
+use std::{cell::Cell, sync::Arc};
 
-use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{Interaction, InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::{GeometricPrimitive, Primitive}, shape::Shape, solve_linear_system_2x2, spectrum::Spectrum};
+use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::Primitive, shape::Shape, solve_linear_system_2x2, spectrum::Spectrum};
 
 #[derive(Debug, Clone)]
 pub struct Shading {

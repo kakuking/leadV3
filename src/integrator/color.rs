@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, Vector3, bxdf::BxDFType, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::{InteractionT, TransportMode}, light::LightStrategy, primitive::Primitive, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Printable, Ray, Vector3, bxdf::BxDFType, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::{InteractionT, TransportMode}, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct ColorIntegrator {
     max_depth: usize,

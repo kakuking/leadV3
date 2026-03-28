@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::InteractionT, light::LightStrategy, primitive::Primitive, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::InteractionT, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct NormalIntegrator {
     max_depth: usize,
@@ -36,7 +36,7 @@ impl SamplerIntegrator for NormalIntegrator {
         }
     }
 
-    fn li(&self, ray: &Ray, scene: &Scene, sampler: &mut Sampler, depth: Option<u32>) -> Spectrum {
+    fn li(&self, ray: &Ray, scene: &Scene, _sampler: &mut Sampler, _depth: Option<u32>) -> Spectrum {
         let mut l = Spectrum::zeros();
         let mut its = SurfaceInteraction::new();
 

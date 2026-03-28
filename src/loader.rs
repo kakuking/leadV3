@@ -1,9 +1,8 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use roxmltree::Document;
 
-use crate::{core::{
-    AngleAxis, Point2, Point3, Transform, Vector2, Vector3, camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, primitive::Primitive, rotate_angle_axis, sampler::Sampler, scaling, scene::Scene, shape::Shape, translation
+use crate::{core::{AngleAxis, Point2, Point3, Transform, Vector2, Vector3, lead_instance::Instance, rotate_angle_axis, scaling, translation
 }, registry::{LeadObject, Registry}};
 
 // #[derive(Clone)]

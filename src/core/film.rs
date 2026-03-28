@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use atomic_float::AtomicF32;
 
-use crate::{core::{bounds::Bounds2, Point2, Vector2, filter::Filter, image::{write_image, write_ppm}, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}}, loader::Parameters, registry::{LeadObject, Manufacturable}};
+use crate::{core::{bounds::Bounds2, Point2, Vector2, filter::Filter, image::write_image, spectrum::{Spectrum, rgb_to_xyz, xyz_to_rgb}}, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 use std::sync::atomic::Ordering;
 
@@ -13,7 +13,7 @@ struct Pixel {
     xyz: [f32; 3],
     filter_weight_sum: f32,
     splat_xyz: [AtomicF32; 3],
-    pad: f32
+    _pad: f32
 }
 
 impl Pixel {
@@ -22,7 +22,7 @@ impl Pixel {
             xyz: [0.0, 0.0, 0.0],
             filter_weight_sum: 0.0,
             splat_xyz: [AtomicF32::new(0.0), AtomicF32::new(0.0), AtomicF32::new(0.0)],
-            pad: 0.0
+            _pad: 0.0
         }
     }
 }

@@ -1,6 +1,6 @@
-use crate::{core::{Printable, bounds::Bounds3, interaction::InteractionBase, math::*}, interaction::surface_interaction::{Shading, SurfaceInteraction}};
+use crate::{core::{Printable, bounds::Bounds3, interaction::InteractionBase}, interaction::surface_interaction::{Shading, SurfaceInteraction}};
 
-use std::{cell::Cell, ops::Index, sync::Arc};
+use std::{cell::Cell, sync::Arc};
 
 use crate::core::medium::Medium;
 
@@ -316,50 +316,50 @@ pub fn look_at(eye: &Point3, target: &Point3, up: &Vector3) -> Transform {
     Transform::from_matrix_unchecked(m)
 }
 
-trait FloorCeil {
-    fn floor(self) -> Self;
-    fn ceil(self) -> Self;
-}
+// trait FloorCeil {
+//     fn floor(self) -> Self;
+//     fn ceil(self) -> Self;
+// }
 
-impl FloorCeil for Vector3 {
-    fn floor(self) -> Self {
-        self.map(|x| x.floor())
-    }
+// impl FloorCeil for Vector3 {
+//     fn floor(self) -> Self {
+//         self.map(|x| x.floor())
+//     }
 
-    fn ceil(self) -> Self {
-        self.map(|x| x.ceil())
-    }
-}
+//     fn ceil(self) -> Self {
+//         self.map(|x| x.ceil())
+//     }
+// }
 
-impl FloorCeil for Point3 {
-    fn floor(self) -> Self {
-        self.map(|x| x.floor())
-    }
+// impl FloorCeil for Point3 {
+//     fn floor(self) -> Self {
+//         self.map(|x| x.floor())
+//     }
 
-    fn ceil(self) -> Self {
-        self.map(|x| x.ceil())
-    }
-}
+//     fn ceil(self) -> Self {
+//         self.map(|x| x.ceil())
+//     }
+// }
 
-impl FloorCeil for Vector2 {
-    fn floor(self) -> Self {
-        self.map(|x| x.floor())
-    }
+// impl FloorCeil for Vector2 {
+//     fn floor(self) -> Self {
+//         self.map(|x| x.floor())
+//     }
 
-    fn ceil(self) -> Self {
-        self.map(|x| x.ceil())
-    }
-}
+//     fn ceil(self) -> Self {
+//         self.map(|x| x.ceil())
+//     }
+// }
 
-impl FloorCeil for Point2 {
-    fn floor(self) -> Self {
-        self.map(|x| x.floor())
-    }
+// impl FloorCeil for Point2 {
+//     fn floor(self) -> Self {
+//         self.map(|x| x.floor())
+//     }
 
-    fn ceil(self) -> Self {
-        self.map(|x| x.ceil())
-    }
-}
+//     fn ceil(self) -> Self {
+//         self.map(|x| x.ceil())
+//     }
+// }
 
 pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vector3 {
     Vector3::new(

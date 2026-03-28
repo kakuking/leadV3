@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use crate::{core::{Printable, Vector3, bxdf::{BxDF, BxDFT, BxDFType}, interaction::TransportMode, spectrum::Spectrum}, registry::Manufacturable};
+use crate::{core::{Printable, Vector3, spectrum::Spectrum}, registry::Manufacturable};
 
 pub fn fr_dielectric(cos_theta_i: f32, eta_i: f32, eta_t: f32) -> f32 {
     let mut cos_theta_i = cos_theta_i.clamp(-1.0, 1.0);

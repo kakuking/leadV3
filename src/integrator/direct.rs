@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Point2, Printable, Ray, Vector3, bxdf::{BxDF, BxDFType}, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::{Interaction, InteractionT, TransportMode}, light::{Light, LightStrategy, VisibilityTester, is_delta_light}, random::power_heuristic, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Point2, Printable, Ray, Vector3, bxdf::BxDFType, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::{Interaction, InteractionT, TransportMode}, light::{Light, LightStrategy, VisibilityTester, is_delta_light}, random::power_heuristic, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct DirectIntegrator {
     max_depth: u32,
@@ -221,8 +221,8 @@ fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, 
 
     if !is_delta_light(light.get_flags() as u32) {
         // println!("Not a delta light");
-        let mut f = Spectrum::zeros();
-        let mut sampled_specular = false;
+        let mut f: Spectrum;// = Spectrum::zeros();
+        let sampled_specular: bool;// = false;
 
         match &it {
             Interaction::Surface(s) => {

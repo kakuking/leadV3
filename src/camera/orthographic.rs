@@ -82,13 +82,13 @@ impl CameraT for OrthographicCamera {
         1.0
     }
 
-    fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum {
+    fn we(&self, _ray: &Ray, _p_raster2: &mut Point2) -> Spectrum {
         todo!("orthographic::we")
     }
-    fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
+    fn pdf_we(&self, _ray: &Ray, _pdf_pos: &mut f32, _pdf_dir: &mut f32) -> Spectrum {
         todo!("orthographic::pdf_we")
     }
-    fn sample_wi(&self, reference: &Interaction, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum {
+    fn sample_wi(&self, _reference: &Interaction, _u: &Point2, _wi: &mut Vector3, _pdf: &mut f32, _p_raster: &mut Point2, _vis: &mut VisibilityTester) -> Spectrum {
         todo!("orthographic::sample_wi")
     }
 }

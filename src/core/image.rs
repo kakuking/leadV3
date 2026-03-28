@@ -133,6 +133,6 @@ pub fn write_image(
         "exr" => write_exr(filename, rgb, cropped_pixel_bounds, full_resolution),
         "ppm" => write_ppm(filename, rgb, cropped_pixel_bounds, full_resolution),
         "png" => write_png(filename, rgb, cropped_pixel_bounds, full_resolution),
-        other => panic!("Unsupported filetype: {}", ext),
+        _ => panic!("Unsupported filetype: {}", ext),
     }
 }
