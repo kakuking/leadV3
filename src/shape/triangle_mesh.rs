@@ -13,7 +13,7 @@ pub struct TriangleMesh {
     pub s: Vec<Vector3>,
     pub uv: Vec<Point2>,
     pub name: String,
-    pub alpha_mask: Option<Arc<dyn Texture<f32>>>,
+    pub alpha_mask: Option<Arc<Texture>>,
 }
 
 impl TriangleMesh {

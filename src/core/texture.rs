@@ -1,6 +1,6 @@
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
-use crate::{core::{Point2, Vector2, spectrum::{Spectrum, rgb_to_xyz}}, interaction::surface_interaction::SurfaceInteraction, texture::uv_mapping::UVMapping2D};
+use crate::{core::{Point2, Printable, Vector2, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, texture::{checkerboard_texture::CheckerboardTexture, constant::ConstantTexture, scale::ScaleTexture, uv_mapping::UVMapping2D, uv_texture::UVTexture}};
 
 #[derive(Debug)]
 pub enum TextureMapping2D {
@@ -13,31 +13,46 @@ impl TextureMapping2D {
             Self::UV(t) => t.map(si, dsdtx, dsdty)
         }
     }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Self::UV(t) => t.to_string()
+        }
+    }
 } 
-pub trait TextureMapping2DT {
+
+pub trait TextureMapping2DT: Manufacturable<TextureMapping2D> + Printable {
     fn map(&self, si: &SurfaceInteraction, dsdtx: &mut Vector2, dsdty: &mut Vector2) -> Point2;
 }
 
-pub trait Texture<T>: Debug + Send + Sync {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T;
+#[derive(Debug)]
+pub enum Texture {
+    Constant(ConstantTexture),
+    UV(UVTexture),
+    Checkerboard(CheckerboardTexture),
+    Scale(ScaleTexture)
 }
 
-#[derive(Debug, Clone)]
-pub struct ConstantTexture<T: Debug> {
-    value: T
-}
+impl Texture {
+    pub fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
+        match self {
+            Texture::Constant(t) => t.evaluate(si),
+            Texture::UV(t) => t.evaluate(si),
+            Texture::Checkerboard(t) => t.evaluate(si),
+            Texture::Scale(t) => t.evaluate(si)
+        }
+    }
 
-impl<T: Debug + Clone> ConstantTexture<T> {
-    pub fn new(value: T) -> Self {
-        Self {
-            value
+    pub fn to_string(&self) -> String {
+        match self {
+            Texture::Constant(t) => t.to_string(),
+            Texture::UV(t) => t.to_string(),
+            Texture::Checkerboard(t) => t.to_string(),
+            Texture::Scale(t) => t.to_string()
         }
     }
 }
 
-impl<T: Debug + Clone + Send + Sync> Texture<T> for ConstantTexture<T> {
-    fn evaluate(&self, _si: &SurfaceInteraction) -> T {
-        self.value.clone()
-    }
+pub trait TextureT: Manufacturable<Texture> + Printable {
+    fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum;
 }
-

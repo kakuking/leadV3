@@ -22,6 +22,15 @@ use crate::material::mirror::MirrorMaterial;
 // Fresnel
 use crate::reflection::fresnel::{FresnelConductor, FresnelDielectric, FresnelNoOp};
 
+// Textures
+use crate::texture::checkerboard_texture::CheckerboardTexture;
+use crate::texture::constant::ConstantTexture;
+use crate::texture::uv_texture::UVTexture;
+use crate::texture::scale::ScaleTexture;
+
+// Texture Mapping
+use crate::texture::uv_mapping::UVMapping2D;
+
 // Samplers
 use crate::sampler::stratified_sampler::StratifiedSampler;
 
@@ -36,6 +45,7 @@ use crate::integrator::normal::NormalIntegrator;
 // Lights
 use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::light::point_light::PointLight;
+
 
 pub mod core;
 pub mod loader;
@@ -220,6 +230,41 @@ fn main() {
         "dielectric".to_string(), 
         Box::new(|params| {
             FresnelDielectric::create_from_parameters(params)
+        })
+    );
+
+    registry.register_texture(
+        "constant".to_string(), 
+        Box::new(|params| {
+            ConstantTexture::create_from_parameters(params)
+        })
+    );
+
+    registry.register_texture(
+        "checkerboard".to_string(), 
+        Box::new(|params| {
+            CheckerboardTexture::create_from_parameters(params)
+        })
+    );
+
+    registry.register_texture(
+        "scale".to_string(), 
+        Box::new(|params| {
+            ScaleTexture::create_from_parameters(params)
+        })
+    );
+
+    registry.register_texture(
+        "uv".to_string(), 
+        Box::new(|params| {
+            UVTexture::create_from_parameters(params)
+        })
+    );
+
+    registry.register_texture_mapping(
+        "uv".to_string(), 
+        Box::new(|params| {
+            UVMapping2D::create_from_parameters(params)
         })
     );
 

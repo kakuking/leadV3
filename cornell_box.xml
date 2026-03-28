@@ -1,5 +1,5 @@
 <scene>
-    <integrator type="direct"/>
+    <integrator type="color"/>
 
     <sampler type="stratified">
         <int name="x_pixel_samples" value="12"/>
@@ -17,7 +17,7 @@
 
         <film type="film" name="film">
             <point2 name="resolution" value="512, 512"/>
-            <string name="filename" value="z_output/direct.png"/>
+            <string name="filename" value="z_output/color.png"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>
 
@@ -35,7 +35,21 @@
         </shape>
 
         <material type="matte">
-            <vector3 name="color" value="0.4, 0.4, 0.4"/>
+            <texture name="kd" type="checkerboard">
+                <mapping type="uv">
+                    <float name="su" value="10"/>
+                    <float name="sv" value="10"/>
+                </mapping>
+                <texture name="tex1" type="constant">
+                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
+                </texture>
+                <texture name="tex2" type="constant">
+                    <vector3 name="value" value="0.0, 0.0, 0.0"/>
+                </texture>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
     </primitive>
 
@@ -49,7 +63,12 @@
         </shape>
         
         <material type="matte">
-            <vector3 name="color" value="0.0, 0.5, 0.0"/>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.0, 0.5, 0.0"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
     </primitive>
 
@@ -63,7 +82,12 @@
         </shape>
         
         <material type="matte">
-            <vector3 name="color" value="0.5, 0.0, 0.0"/>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.5, 0.0, 0.0"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
     </primitive>
 
@@ -77,7 +101,12 @@
         </shape>
         
         <material type="matte">
-            <vector3 name="color" value="0.4, 0.4, 0.4"/>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
     </primitive>
 
@@ -91,7 +120,12 @@
         </shape>
         
         <material type="matte">
-            <vector3 name="color" value="0.4, 0.4, 0.4"/>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
     </primitive>
     
@@ -106,7 +140,12 @@
         </shape>
         
         <material type="matte">
-            <vector3 name="color" value="0.4, 0.4, 0.4"/>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
         
         <light type="diffuse">
@@ -125,7 +164,12 @@
         </shape>
         
         <material type="matte">
-            <vector3 name="color" value="0.5, 0.5, 0.5"/>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.5, 0.5, 0.5"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
         </material>
     </primitive>
     

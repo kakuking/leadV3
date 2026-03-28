@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{core::{camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, primitive::Primitive, sampler::Sampler, shape::Shape}, loader::Parameters, reflection::fresnel::Fresnel};
+use crate::{core::{camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, primitive::Primitive, sampler::Sampler, shape::Shape, texture::{Texture, TextureMapping2D}}, loader::Parameters, reflection::fresnel::Fresnel};
 
 
 // #[derive(Clone)]
@@ -15,6 +15,8 @@ pub enum LeadObject {
     Integrator(Integrator),
     Material(Material),
     Fresnel(Fresnel),
+    Texture(Texture),
+    TextureMapping(TextureMapping2D),
 }
 
 pub trait Manufacturable<T> {
@@ -35,6 +37,8 @@ pub struct Registry {
     pub integrator_factories: HashMap<String, FactoryFn<Integrator>>,
     pub material_factories: HashMap<String, FactoryFn<Material>>,
     pub fresnel_factories: HashMap<String, FactoryFn<Fresnel>>,
+    pub texture_factories: HashMap<String, FactoryFn<Texture>>,
+    pub texture_mapping_factories: HashMap<String, FactoryFn<TextureMapping2D>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -50,7 +54,9 @@ impl Registry {
             light_factories: HashMap::new(),
             integrator_factories: HashMap::new(),
             material_factories: HashMap::new(),
-            fresnel_factories: HashMap::new()
+            fresnel_factories: HashMap::new(),
+            texture_factories: HashMap::new(),
+            texture_mapping_factories: HashMap::new()
         }
     }
 
@@ -164,6 +170,28 @@ impl Registry {
         }
     }
 
+    pub fn register_texture(&mut self, t: String, function: FactoryFn<Texture>) {
+        self.texture_factories.insert(t, function);
+    }
+
+    fn create_texture(&self, t: String, parameters: Parameters) -> Texture {
+        match self.texture_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO MATERIAL FOUND OF TYPE {}", t),
+        }
+    }
+
+    pub fn register_texture_mapping(&mut self, t: String, function: FactoryFn<TextureMapping2D>) {
+        self.texture_mapping_factories.insert(t, function);
+    }
+
+    fn create_texture_mapping(&self, t: String, parameters: Parameters) -> TextureMapping2D {
+        match self.texture_mapping_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO MATERIAL FOUND OF TYPE {}", t),
+        }
+    }
+
     pub fn create_lead_object(
         &self,
         object: String,
@@ -181,6 +209,8 @@ impl Registry {
             "integrator" => LeadObject::Integrator(self.create_integrator(object_type, parameters)),
             "material" => LeadObject::Material(self.create_material(object_type, parameters)),
             "fresnel" => LeadObject::Fresnel(self.create_fresnel(object_type, parameters)),
+            "texture" => LeadObject::Texture(self.create_texture(object_type, parameters)),
+            "mapping" => LeadObject::TextureMapping(self.create_texture_mapping(object_type, parameters)),
             _ => panic!("No lead object found with name {}", object),
         }
     }

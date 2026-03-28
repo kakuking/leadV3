@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
-use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::{ConstantTexture, Texture}}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::{Fresnel, FresnelNoOp}, lambertian::LambertianReflection, specular::SpecularReflection}, registry::Manufacturable};
+use crate::{core::{Printable, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::{Texture}}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::{Fresnel, FresnelNoOp}, specular::SpecularReflection}, registry::Manufacturable};
 
 
 #[derive(Debug)]
 pub struct MirrorMaterial {
-    bump_map: Option<Arc<dyn Texture<f32>>>,
+    bump_map: Option<Arc<Texture>>,
 }
 
 impl MirrorMaterial {
     pub fn init(
-        bump_map: Option<Arc<dyn Texture<f32>>>
+        bump_map: Option<Arc<Texture>>
     ) -> Self {
         Self {
             bump_map

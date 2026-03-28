@@ -4,10 +4,10 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
 ## Sample outputs of the renderer (512x512 / 4 samples per pixel)
 Output of the direct-lighting integrator on a cornell-box-like input
-![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/ebe3af3d44e1a8216c1f4738667cfb3800b30b3a/z_output/direct.png)
+![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/dc15ba4516de2cfe44917c37d0d6df8f9cee618d/z_output/direct.png)
 
 Output of the color integrator on the cornell-box-like input
-![Color Integrator Output](https://github.com/kakuking/leadV3/blob/ebe3af3d44e1a8216c1f4738667cfb3800b30b3a/z_output/color.png)
+![Color Integrator Output](https://github.com/kakuking/leadV3/blob/a4dcc7a1ece4c7a44ba954d493d1cbbe43ead0b2/z_output/color.png)
 
 Output of the normal renderer, which on intersection, converts the normal at intersection point to a color
 ![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/4447d525c2316d0460d7f4fc8f4ab80cc32280de/output/normal.png)
@@ -39,4 +39,6 @@ Output of the normal renderer, which on intersection, converts the normal at int
 - [x] Fixed a bug in computing bsdf at intersected
 - [x] Added Area Light and Diffuse Area Light
 - [x] Finish direct integrator
+- [x] Added Perfect Mirror material
+- [x] Added Checkerboard, UV, Constant, Scale Textures and added them to scene handling
 - [ ] Add more lights, integrators, and so on...

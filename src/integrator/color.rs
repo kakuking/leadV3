@@ -42,6 +42,10 @@ impl SamplerIntegrator for ColorIntegrator {
             None => 1
         };
 
+        if depth > self.max_depth as u32 {
+            return Spectrum::zeros();
+        }
+
         let mut its = SurfaceInteraction::new();
 
         if !scene.intersect(ray, &mut its) {

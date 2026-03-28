@@ -23,7 +23,7 @@ impl Material {
 
 pub trait MaterialT: Manufacturable<Material> + Printable {
     fn compute_scattering_funcitons(&self, si: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_lobes: bool);
-    fn bump(d: &Arc<dyn Texture<f32>>, si: &mut SurfaceInteraction) {
+    fn bump(d: &Arc<Texture>, si: &mut SurfaceInteraction) {
         let mut si_eval = si.clone();
 
         let mut du = 0.5 * si.dudx.get().abs() + si.dudy.get().abs();
@@ -33,7 +33,7 @@ pub trait MaterialT: Manufacturable<Material> + Printable {
         si_eval.base.p = si.base.p + du * si.shading.dpdu;
         si_eval.uv = si.uv + Vector2::new(du, 0.0);
         si_eval.base.n = (si.shading.dpdu.cross(&si.shading.dpdv) + du * si.dndu).normalize();
-        let u_displace = d.evaluate(&si_eval);
+        let u_displace = d.evaluate(&si_eval).x;
 
         let mut dv = 0.5 * si.dvdx.get().abs() + si.dvdy.get().abs();
         if dv == 0.0 {
@@ -42,9 +42,9 @@ pub trait MaterialT: Manufacturable<Material> + Printable {
         si_eval.base.p = si.base.p + dv * si.shading.dpdv;
         si_eval.uv = si.uv + Vector2::new(0.0, dv);
         si_eval.base.n = (si.shading.dpdu.cross(&si.shading.dpdv) + du * si.dndv).normalize();
-        let v_displace = d.evaluate(&si_eval);
+        let v_displace = d.evaluate(&si_eval).x;
 
-        let displace = d.evaluate(&si);
+        let displace = d.evaluate(&si).x;
 
         let dpdu = si.shading.dpdu + (u_displace - displace) / du * si.shading.n + displace * si.shading.dndu;
         let dpdv = si.shading.dpdv + (v_displace - displace) / dv * si.shading.n + displace * si.shading.dndv;
