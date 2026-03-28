@@ -1,4 +1,4 @@
-use crate::{core::{EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, bounds::Bounds3, coordinate_system, gamma, interaction::{Interaction, InteractionBase, InteractionT}, offset_ray_origin, quadratic, random::{uniform_cone_pdf, uniform_sample_sphere}, shape::{Shape, ShapeT}, spherical_direction_with_ref}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, apply_transform_to_surface_interaction, bounds::Bounds3, coordinate_system, gamma, interaction::{Interaction, InteractionBase, InteractionT}, offset_ray_origin, quadratic, random::{uniform_cone_pdf, uniform_sample_sphere}, shape::{Shape, ShapeT}, spherical_direction_with_ref}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
@@ -141,6 +141,8 @@ impl ShapeT for Sphere {
 
         *isect = SurfaceInteraction::init(&p_hit, &p_error, &Point2::new(u, v), &(-ray.d), &dpdu, &dpdv, &dndu, &dndv, ray.time, None);
         *t_hit = t_shape_hit;
+
+        *isect = apply_transform_to_surface_interaction(&isect, &self.object_to_world);
 
         true
     }

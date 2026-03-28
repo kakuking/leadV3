@@ -3,8 +3,11 @@ Because 3rd times the charm!!!
 Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
 ## Sample outputs of the renderer (512x512 / 4 samples per pixel)
-Output of the direct lighting integrator on a cornell-box-like input
-![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/d90300923d1e4182fcbea708f07ce1cd192679d7/z_output/direct.png)
+Output of the direct-lighting integrator on a cornell-box-like input
+![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/ebe3af3d44e1a8216c1f4738667cfb3800b30b3a/z_output/direct.png)
+
+Output of the color integrator on the cornell-box-like input
+![Color Integrator Output](https://github.com/kakuking/leadV3/blob/ebe3af3d44e1a8216c1f4738667cfb3800b30b3a/z_output/color.png)
 
 Output of the normal renderer, which on intersection, converts the normal at intersection point to a color
 ![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/4447d525c2316d0460d7f4fc8f4ab80cc32280de/output/normal.png)

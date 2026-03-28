@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{core::{camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, primitive::Primitive, sampler::Sampler, shape::Shape}, loader::Parameters};
+use crate::{core::{camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, primitive::Primitive, sampler::Sampler, shape::Shape}, loader::Parameters, reflection::fresnel::Fresnel};
 
 
 // #[derive(Clone)]
@@ -13,7 +13,8 @@ pub enum LeadObject {
     Film(Film),
     Light(Light),
     Integrator(Integrator),
-    Material(Material)
+    Material(Material),
+    Fresnel(Fresnel),
 }
 
 pub trait Manufacturable<T> {
@@ -33,6 +34,7 @@ pub struct Registry {
     pub light_factories: HashMap<String, FactoryFn<Light>>,
     pub integrator_factories: HashMap<String, FactoryFn<Integrator>>,
     pub material_factories: HashMap<String, FactoryFn<Material>>,
+    pub fresnel_factories: HashMap<String, FactoryFn<Fresnel>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -47,7 +49,8 @@ impl Registry {
             film_factories: HashMap::new(),
             light_factories: HashMap::new(),
             integrator_factories: HashMap::new(),
-            material_factories: HashMap::new()
+            material_factories: HashMap::new(),
+            fresnel_factories: HashMap::new()
         }
     }
 
@@ -150,6 +153,17 @@ impl Registry {
         }
     }
 
+    pub fn register_fresnel(&mut self, t: String, function: FactoryFn<Fresnel>) {
+        self.fresnel_factories.insert(t, function);
+    }
+
+    fn create_fresnel(&self, t: String, parameters: Parameters) -> Fresnel {
+        match self.fresnel_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO MATERIAL FOUND OF TYPE {}", t),
+        }
+    }
+
     pub fn create_lead_object(
         &self,
         object: String,
@@ -166,6 +180,7 @@ impl Registry {
             "light" => LeadObject::Light(self.create_light(object_type, parameters)),
             "integrator" => LeadObject::Integrator(self.create_integrator(object_type, parameters)),
             "material" => LeadObject::Material(self.create_material(object_type, parameters)),
+            "fresnel" => LeadObject::Fresnel(self.create_fresnel(object_type, parameters)),
             _ => panic!("No lead object found with name {}", object),
         }
     }

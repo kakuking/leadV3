@@ -1,10 +1,11 @@
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{core::{Printable, Vector2, bsdf::BSDF, interaction::TransportMode, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, material::matte::MatteMaterial, registry::Manufacturable};
+use crate::{core::{Printable, Vector2, bsdf::BSDF, interaction::TransportMode, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, material::{matte::MatteMaterial, mirror::MirrorMaterial}, registry::Manufacturable};
 
 #[derive(Debug)]
 pub enum Material {
-    Matte(MatteMaterial)
+    Matte(MatteMaterial),
+    Mirror(MirrorMaterial)
 }
 
 impl Material {
@@ -14,6 +15,7 @@ impl Material {
         
         match self {
             Self::Matte(m) => m.compute_scattering_funcitons(si, mode, allow_multiple_lobes),
+            Self::Mirror(m) => m.compute_scattering_funcitons(si, mode, allow_multiple_lobes),
         }
     }
 }

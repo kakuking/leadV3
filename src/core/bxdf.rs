@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, registry::Manufacturable, reflection::lambertian::LambertianReflection};
+use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, reflection::{lambertian::LambertianReflection, specular::{SpecularReflection, SpecularTransmission}}, registry::Manufacturable};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -22,48 +22,72 @@ bitflags! {
 #[derive(Debug, Clone)]
 pub enum BxDF {
     Lambertian(LambertianReflection),
+    SpecRefl(SpecularReflection),
+    SpecTrans(SpecularTransmission),
+    // FresnelSpecular(FresnelSpecular),
 }
 
 impl BxDF {
     pub fn get_type(&self) -> BxDFType {
         match self {
-            Self::Lambertian(b) => b.get_type() 
+            Self::Lambertian(b) => b.get_type(),
+            Self::SpecRefl(b) => b.get_type(),
+            Self::SpecTrans(b) => b.get_type(),
+            // Self::FresnelSpecular(b) => b.get_type() 
         }
     }
 
     pub fn set_type(&mut self, typ: BxDFType) {
         match self {
-            Self::Lambertian(b) => b.set_type(typ) 
+            Self::Lambertian(b) => b.set_type(typ),
+            Self::SpecRefl(b) => b.set_type(typ),
+            Self::SpecTrans(b) => b.set_type(typ),
+            // Self::FresnelSpecular(b) => b.set_type(typ) 
         }
     }
 
     pub fn f(&self, wo: &Vector3, wi: &Vector3) -> Spectrum {
         match self {
-            Self::Lambertian(b) => b.f(wo, wi) 
+            Self::Lambertian(b) => b.f(wo, wi),
+            Self::SpecRefl(b) => b.f(wo, wi),
+            Self::SpecTrans(b) => b.f(wo, wi),
+            // Self::FresnelSpecular(b) => b.f(wo, wi) 
         }
     }
 
     pub fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: Option<BxDFType>) -> Spectrum {
         match self {
-            Self::Lambertian(b) => b.sample_f(wo, wi, sample, pdf, sampled_type)
+            Self::Lambertian(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
+            Self::SpecRefl(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
+            Self::SpecTrans(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
+            // Self::FresnelSpecular(b) => b.sample_f(wo, wi, sample, pdf, sampled_type)
         }
     }
 
     pub fn rho(&self, wo: &Vector3, n_samples: usize, samples: &mut Vec<Point2>) -> Spectrum {
         match self {
-            Self::Lambertian(b) => b.rho(wo, n_samples, samples)
+            Self::Lambertian(b) => b.rho(wo, n_samples, samples),
+            Self::SpecRefl(b) => b.rho(wo, n_samples, samples),
+            Self::SpecTrans(b) => b.rho(wo, n_samples, samples),
+            // Self::FresnelSpecular(b) => b.rho(wo, n_samples, samples)
         }
     }
 
     pub fn rho_2(&self, n_samples: usize, samples1: &mut Vec<Point2>, samples2: &mut Vec<Point2>) -> Spectrum {
         match self {
-            Self::Lambertian(b) => b.rho_2(n_samples, samples1, samples2)
+            Self::Lambertian(b) => b.rho_2(n_samples, samples1, samples2),
+            Self::SpecRefl(b) => b.rho_2(n_samples, samples1, samples2),
+            Self::SpecTrans(b) => b.rho_2(n_samples, samples1, samples2),
+            // Self::FresnelSpecular(b) => b.rho_2(n_samples, samples1, samples2)
         }
     }
 
     pub fn pdf(&self, wi: &Vector3, wo: &Vector3) -> f32 {
         match self {
-            Self::Lambertian(b) => b.pdf(wi, wo)
+            Self::Lambertian(b) => b.pdf(wi, wo),
+            Self::SpecRefl(b) => b.pdf(wi, wo),
+            Self::SpecTrans(b) => b.pdf(wi, wo),
+            // Self::FresnelSpecular(b) => b.pdf(wi, wo)
         }
     }
 

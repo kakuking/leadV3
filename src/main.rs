@@ -1,13 +1,15 @@
 use std::thread;
 use std::time::Instant;
 
-use crate::camera::perspective::PerspectiveCamera;
-use crate::core::primitive::GeometricPrimitive;
-use crate::light::diffuse_area_light::DiffuseAreaLight;
+use crate::integrator::color::ColorIntegrator;
 use crate::registry::{Registry, Manufacturable};
 use crate::core::Printable;
 
+//primitive
+use crate::core::primitive::GeometricPrimitive;
+
 // Camera and film
+use crate::camera::perspective::PerspectiveCamera;
 use crate::camera::orthographic::OrthographicCamera;
 use crate::core::film::Film;
 use crate::filter::box_filter::BoxFilter;
@@ -15,6 +17,10 @@ use crate::filter::triangle_filter::TriangleFilter;
 
 // Materials 
 use crate::material::matte::MatteMaterial;
+use crate::material::mirror::MirrorMaterial;
+
+// Fresnel
+use crate::reflection::fresnel::{FresnelConductor, FresnelDielectric, FresnelNoOp};
 
 // Samplers
 use crate::sampler::stratified_sampler::StratifiedSampler;
@@ -28,6 +34,7 @@ use crate::integrator::direct::DirectIntegrator;
 use crate::integrator::normal::NormalIntegrator;
 
 // Lights
+use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::light::point_light::PointLight;
 
 pub mod core;
@@ -160,10 +167,24 @@ fn main() {
         }),
     );
 
+    registry.register_integrator(
+        "color".to_string(), 
+        Box::new(|params| {
+            ColorIntegrator::create_from_parameters(params)
+        }),
+    );
+
     registry.register_material(
         "matte".to_string(), 
         Box::new(|params| {
         MatteMaterial::create_from_parameters(params)
+        }),
+    );
+
+    registry.register_material(
+        "mirror".to_string(), 
+        Box::new(|params| {
+            MirrorMaterial::create_from_parameters(params)
         }),
     );
 
@@ -178,6 +199,27 @@ fn main() {
         "diffuse".to_string(), 
         Box::new(|params| {
             DiffuseAreaLight::create_from_parameters(params)
+        })
+    );
+
+    registry.register_fresnel(
+        "noop".to_string(), 
+        Box::new(|params| {
+            FresnelNoOp::create_from_parameters(params)
+        })
+    );
+
+    registry.register_fresnel(
+        "conductor".to_string(), 
+        Box::new(|params| {
+            FresnelConductor::create_from_parameters(params)
+        })
+    );
+
+    registry.register_fresnel(
+        "dielectric".to_string(), 
+        Box::new(|params| {
+            FresnelDielectric::create_from_parameters(params)
         })
     );
 

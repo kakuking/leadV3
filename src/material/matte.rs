@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Printable, Vector3, bsdf::BSDF, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::{ConstantTexture, Texture}}, interaction::surface_interaction::SurfaceInteraction, reflection::lambertian::LambertianReflection, registry::Manufacturable};
+use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::{ConstantTexture, Texture}}, interaction::surface_interaction::SurfaceInteraction, reflection::lambertian::LambertianReflection, registry::Manufacturable};
 
 
 #[derive(Debug)]

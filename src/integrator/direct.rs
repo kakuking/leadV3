@@ -73,30 +73,17 @@ impl SamplerIntegrator for DirectIntegrator {
             }
         }
 
-        if depth + 1 < self.max_depth && false {
-            eprintln!("Not yet implemented");
+        if depth + 1 < self.max_depth {
             l += self.specular_reflect(ray, &its, scene, sampler, depth);
             l += self.specular_transmit(ray, &its, scene, sampler, depth);
         }
         
-        // if let Some(bsdf) = &its.bsdf {
-        //     return bsdf.f(its.get_wo(), &-ray.d, None);
-        // } 
-
         l
-    }
-
-    fn specular_reflect(&self, _ray: &Ray, _its: &SurfaceInteraction, _scene: &Scene, _sampler: &mut Sampler, _depth: u32) -> Spectrum {
-        panic!("DirectIntegrator::SpecularReflect");
-    }
-    
-    fn specular_transmit(&self, _ray: &Ray, _its: &SurfaceInteraction, _scene: &Scene, _sampler: &mut Sampler, _depth: u32) -> Spectrum {
-        panic!("DirectIntegrator::SpecularTransmit");
     }
 }
 
 impl Manufacturable<Integrator> for DirectIntegrator {
-    fn create_from_parameters(param: crate::loader::Parameters) -> Integrator {
+    fn create_from_parameters(_param: crate::loader::Parameters) -> Integrator {
         let it = Self {
             max_depth: 8,
 
@@ -152,7 +139,7 @@ fn uniform_sample_all_lights(it: &Interaction, scene: &Scene, sampler: &mut Samp
     l
 }
 
-fn uniform_sample_one_light(it: &Interaction, scene: &Scene, sampler: &mut Sampler, n_light_samples: &Vec<usize>, handle_media: bool) -> Spectrum {
+fn uniform_sample_one_light(it: &Interaction, scene: &Scene, sampler: &mut Sampler, _n_light_samples: &Vec<usize>, handle_media: bool) -> Spectrum {
     let n_lights = scene.lights.len();
     if n_lights == 0 {
         return Spectrum::zeros();
@@ -168,7 +155,7 @@ fn uniform_sample_one_light(it: &Interaction, scene: &Scene, sampler: &mut Sampl
 }
 
 fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, u_light: &Point2, scene: &Scene, sampler: &mut Sampler, handle_media: bool, specular: bool) -> Spectrum {
-    let mut bsdf_flags = if specular {
+    let bsdf_flags = if specular {
         BxDFType::BSDF_ALL
     } else {
         BxDFType::BSDF_ALL & !BxDFType::BSDF_SPECULAR

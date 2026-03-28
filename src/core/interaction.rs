@@ -2,6 +2,7 @@ use std::{cell::Cell, sync::Arc};
 
 use crate::{core::{EPSILON, INFINITY, Normal3, Point3, Ray, Vector3, medium::{Medium, MediumInterface}, offset_ray_origin}, interaction::surface_interaction::SurfaceInteraction};
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum TransportMode {
     Radiance,
     Importance

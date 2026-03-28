@@ -1,10 +1,11 @@
-use crate::{core::{bounds::Bounds2, Point2, Printable, Ray, camera::Camera, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{direct::DirectIntegrator, normal::NormalIntegrator}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Point2, Printable, Ray, RayDifferential, Vector3, bounds::Bounds2, bxdf::BxDFType, camera::Camera, interaction::InteractionT, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{color::ColorIntegrator, direct::DirectIntegrator, normal::NormalIntegrator}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 use rayon::prelude::*;
 
 pub enum Integrator {
     Direct(DirectIntegrator),
     Normal(NormalIntegrator),
+    Color(ColorIntegrator),
     Empty,
 }
 
@@ -13,6 +14,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.render(scene),
             Self::Normal(i) => i.render(scene),
+            Self::Color(i) => i.render(scene),
             Self::Empty => panic!("Render called on empty integrator"),
         }
     }
@@ -21,6 +23,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.set_camera(camera),
             Self::Normal(i) => i.set_camera(camera),
+            Self::Color(i) => i.set_camera(camera),
             Self::Empty => panic!("Set camera called on empty integrator"),
         }
     }
@@ -29,6 +32,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.set_sampler(sampler),
             Self::Normal(i) => i.set_sampler(sampler),
+            Self::Color(i) => i.set_sampler(sampler),
             Self::Empty => panic!("Set sampler called on empty integrator"),
         }
     }
@@ -37,6 +41,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.preprocess(scene),
             Self::Normal(i) => i.preprocess(scene),
+            Self::Color(i) => i.preprocess(scene),
             Self::Empty => panic!("preprocess called on empty integrator")
         }
     }
@@ -45,6 +50,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.li(ray, scene, sampler, depth),
             Self::Normal(i) => i.li(ray, scene, sampler, depth),
+            Self::Color(i) => i.li(ray, scene, sampler, depth),
             Self::Empty => panic!("li called on empty integrator")
         }
     }
@@ -53,6 +59,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.specular_reflect(ray, its, scene, sampler, depth),
             Self::Normal(i) => i.specular_reflect(ray, its, scene, sampler, depth),
+            Self::Color(i) => i.specular_reflect(ray, its, scene, sampler, depth),
             Self::Empty => panic!("spec_reflect called on empty integrator")
         }
     }
@@ -61,6 +68,7 @@ impl Integrator {
         match self {
             Self::Direct(i) => i.specular_transmit(ray, its, scene, sampler, depth),
             Self::Normal(i) => i.specular_transmit(ray, its, scene, sampler, depth),
+            Self::Color(i) => i.specular_transmit(ray, its, scene, sampler, depth),
             Self::Empty => panic!("spec_reflect called on empty integrator")
         }
     }
@@ -71,6 +79,7 @@ impl Printable for Integrator {
         match self {
             Self::Direct(i) => i.to_string(),
             Self::Normal(i) => i.to_string(),
+            Self::Color(i) => i.to_string(),
             Self::Empty => panic!("to String called on empty integrator"),
         }
     }
@@ -168,6 +177,86 @@ pub trait SamplerIntegrator: Manufacturable<Integrator> + Printable {
 
     fn preprocess(&mut self, _scene: &Scene) {}
     fn li(&self, ray: &Ray, scene: &Scene, sampler: &mut Sampler, depth: Option<u32>) -> Spectrum;
-    fn specular_reflect(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum;
-    fn specular_transmit(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum;
+
+    fn specular_reflect(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum {
+        let wo = its.get_wo();
+        let mut wi = Vector3::zeros();
+        let mut pdf = 0.0;
+        let typ = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
+
+        let mut flags = BxDFType::empty();
+
+        let f = match &its.bsdf {
+            Some(bsdf) => bsdf.sample_f(wo, &mut wi, &sampler.get_2d(), &mut pdf, typ, &mut flags),
+            None => Spectrum::zeros()
+        };
+
+        let ns = &its.shading.n;
+
+        if pdf > 0.0 && f != Spectrum::zeros() && wi.dot(ns).abs() != 0.0 {
+            let mut rd = its.spawn_ray(&wi);
+            if let Some(r_diff) = &ray.differential {
+                let mut diff = RayDifferential::new();
+                diff.rx_o = its.get_p() - -its.dpdx.get();
+                diff.ry_o = its.get_p() - -its.dpdy.get();
+
+                let dndx = its.shading.dndu * its.dudx.get() + its.shading.dndv * its.dvdx.get();
+                let dndy = its.shading.dndu * its.dudy.get() + its.shading.dndv * its.dvdy.get();
+                let dwodx = -r_diff.rx_d - wo;
+                let dwody = -r_diff.ry_d - wo;
+                let d_dn_dx = dwodx.dot(ns) + wo.dot(&dndx);
+                let d_dn_dy = dwody.dot(ns) + wo.dot(&dndy);
+
+                diff.rx_d = wi - dwodx + 2.0 * (wo.dot(ns) * dndx + d_dn_dx * ns);
+                diff.ry_d = wi - dwody + 2.0 * (wo.dot(ns) * dndy + d_dn_dy * ns);
+
+                rd.differential = Some(diff);
+            }
+
+            return f.component_mul(&self.li(&rd, scene, sampler, Some(depth + 1))) * wi.dot(ns).abs();
+        }
+
+        Spectrum::zeros()
+    }
+    
+    fn specular_transmit(&self, ray: &Ray, its: &SurfaceInteraction, scene: &Scene, sampler: &mut Sampler, depth: u32) -> Spectrum {
+        let wo = its.get_wo();
+        let mut wi = Vector3::zeros();
+        let mut pdf = 0.0;
+        let typ = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
+
+        let mut flags = BxDFType::empty();
+
+        let f = match &its.bsdf {
+            Some(bsdf) => bsdf.sample_f(wo, &mut wi, &sampler.get_2d(), &mut pdf, typ, &mut flags),
+            None => Spectrum::zeros()
+        };
+
+        let ns = &its.shading.n;
+
+        if pdf > 0.0 && f != Spectrum::zeros() && wi.dot(ns).abs() != 0.0 {
+            let mut rd = its.spawn_ray(&wi);
+            if let Some(r_diff) = &ray.differential {
+                let mut diff = RayDifferential::new();
+                diff.rx_o = its.get_p() - -its.dpdx.get();
+                diff.ry_o = its.get_p() - -its.dpdy.get();
+
+                let dndx = its.shading.dndu * its.dudx.get() + its.shading.dndv * its.dvdx.get();
+                let dndy = its.shading.dndu * its.dudy.get() + its.shading.dndv * its.dvdy.get();
+                let dwodx = -r_diff.rx_d - wo;
+                let dwody = -r_diff.ry_d - wo;
+                let d_dn_dx = dwodx.dot(ns) + wo.dot(&dndx);
+                let d_dn_dy = dwody.dot(ns) + wo.dot(&dndy);
+
+                diff.rx_d = wi - dwodx + 2.0 * (wo.dot(ns) * dndx + d_dn_dx * ns);
+                diff.ry_d = wi - dwody + 2.0 * (wo.dot(ns) * dndy + d_dn_dy * ns);
+
+                rd.differential = Some(diff);
+            }
+
+            return f.component_mul(&self.li(&rd, scene, sampler, Some(depth + 1))) * wi.dot(ns).abs();
+        }
+
+        Spectrum::zeros()
+    }
 }
