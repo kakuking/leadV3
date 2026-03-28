@@ -4,7 +4,10 @@ Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
 ## Sample outputs of the renderer (512x512)
 Output of the path tracing integrator on a cornell-box-like input. 144 samples per pixel
-![Path Tracing Integrator Output](https://github.com/kakuking/leadV3/blob/ca5d969c117d0d3f980a8d4cecf7b7ce6ca2f9e7/z_output/path.png)
+![Path Tracing Integrator Output](https://github.com/kakuking/leadV3/blob/ad5a98cda0a84d7b3b2f2ee37e32205f0363b9c4/z_output/path.png)
+
+Another output of the path tracing integrator on a cornell-box-like input with a glass sphere in the center. 144 samples per pixel
+![Path Tracing Integrator Output with a Glass Sphere](https://github.com/kakuking/leadV3/blob/ad5a98cda0a84d7b3b2f2ee37e32205f0363b9c4/z_output/glass_path.png)
 
 Output of the direct-lighting integrator on a cornell-box-like input. 144 samples per pixel
 ![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/dc15ba4516de2cfe44917c37d0d6df8f9cee618d/z_output/direct.png)
