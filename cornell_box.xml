@@ -139,7 +139,7 @@
             <!-- <scale value="0.13, 1.0, 0.103"/> -->
             <scale value="0.5, 1.0, 0.5"/>
             <rotate value="0.0, 0.0, 1.0, 180"/>
-            <translate value="0.0, 2.0, 0.0"/>
+            <translate value="0.0, 1.999, 0.0"/>
         </shape>
         
         <material type="matte">
@@ -181,6 +181,7 @@
     <primitive type="geometric">
         <shape type="sphere">            
             <scale value="0.5, 0.5, 0.5"/>
+            <!-- <translate value="0.0, 0.7, 0.0"/> -->
             <translate value="-0.4, 0.5, -0.4"/>
         </shape>
         
