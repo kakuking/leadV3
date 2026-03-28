@@ -1,7 +1,6 @@
 use std::thread;
 use std::time::Instant;
 
-use crate::integrator::color::ColorIntegrator;
 use crate::registry::{Registry, Manufacturable};
 use crate::core::Printable;
 
@@ -18,6 +17,7 @@ use crate::filter::triangle_filter::TriangleFilter;
 // Materials 
 use crate::material::matte::MatteMaterial;
 use crate::material::mirror::MirrorMaterial;
+use crate::material::glass::GlassMaterial;
 
 // Fresnel
 use crate::reflection::fresnel::{FresnelConductor, FresnelDielectric, FresnelNoOp};
@@ -41,6 +41,8 @@ use crate::shape::triangle_mesh::TriangleMesh;
 // Integrators
 use crate::integrator::direct::DirectIntegrator;
 use crate::integrator::normal::NormalIntegrator;
+use crate::integrator::color::ColorIntegrator;
+use crate::integrator::path::PathIntegrator;
 
 // Lights
 use crate::light::diffuse_area_light::DiffuseAreaLight;
@@ -184,6 +186,13 @@ fn main() {
         }),
     );
 
+    registry.register_integrator(
+        "path".to_string(), 
+        Box::new(|params| {
+            PathIntegrator::create_from_parameters(params)
+        }),
+    );
+
     registry.register_material(
         "matte".to_string(), 
         Box::new(|params| {
@@ -195,6 +204,13 @@ fn main() {
         "mirror".to_string(), 
         Box::new(|params| {
             MirrorMaterial::create_from_parameters(params)
+        }),
+    );
+
+    registry.register_material(
+        "glass".to_string(), 
+        Box::new(|params| {
+            GlassMaterial::create_from_parameters(params)
         }),
     );
 

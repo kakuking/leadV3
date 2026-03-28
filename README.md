@@ -2,14 +2,17 @@
 Because 3rd times the charm!!!
 Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
-## Sample outputs of the renderer (512x512 / 4 samples per pixel)
-Output of the direct-lighting integrator on a cornell-box-like input
+## Sample outputs of the renderer (512x512)
+Output of the path tracing integrator on a cornell-box-like input. 144 samples per pixel
+![Path Tracing Integrator Output](https://github.com/kakuking/leadV3/blob/ca5d969c117d0d3f980a8d4cecf7b7ce6ca2f9e7/z_output/path.png)
+
+Output of the direct-lighting integrator on a cornell-box-like input. 144 samples per pixel
 ![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/dc15ba4516de2cfe44917c37d0d6df8f9cee618d/z_output/direct.png)
 
-Output of the color integrator on the cornell-box-like input
+Output of the color integrator on the cornell-box-like input. 144 samples per pixel
 ![Color Integrator Output](https://github.com/kakuking/leadV3/blob/a4dcc7a1ece4c7a44ba954d493d1cbbe43ead0b2/z_output/color.png)
 
-Output of the normal renderer, which on intersection, converts the normal at intersection point to a color
+Output of the normal renderer, which on intersection, converts the normal at intersection point to a color. 4 samples per pixel
 ![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/4447d525c2316d0460d7f4fc8f4ab80cc32280de/output/normal.png)
 
 - [x] Added Basic Maths 
@@ -41,4 +44,7 @@ Output of the normal renderer, which on intersection, converts the normal at int
 - [x] Finish direct integrator
 - [x] Added Perfect Mirror material
 - [x] Added Checkerboard, UV, Constant, Scale Textures and added them to scene handling
+- [x] Added Path Tracing renderer
+- [x] Fixed a terrible bug in BxDF and BxDFt that swapped wo and wi
+- [x] Added a glass material
 - [ ] Add more lights, integrators, and so on...

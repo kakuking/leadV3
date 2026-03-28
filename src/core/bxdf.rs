@@ -82,11 +82,11 @@ impl BxDF {
         }
     }
 
-    pub fn pdf(&self, wi: &Vector3, wo: &Vector3) -> f32 {
+    pub fn pdf(&self, wo: &Vector3, wi: &Vector3) -> f32 {
         match self {
-            Self::Lambertian(b) => b.pdf(wi, wo),
-            Self::SpecRefl(b) => b.pdf(wi, wo),
-            Self::SpecTrans(b) => b.pdf(wi, wo),
+            Self::Lambertian(b) => b.pdf(wo, wi),
+            Self::SpecRefl(b) => b.pdf(wo, wi),
+            Self::SpecTrans(b) => b.pdf(wo, wi),
             // Self::FresnelSpecular(b) => b.pdf(wi, wo)
         }
     }
@@ -154,7 +154,7 @@ pub trait BxDFT: Manufacturable<BxDF> + Printable {
         r
     }
 
-    fn pdf(&self, wi: &Vector3, wo: &Vector3) -> f32 {
+    fn pdf(&self, wo: &Vector3, wi: &Vector3) -> f32 {
         if same_hemisphere(wo, wi) {
             abs_cos_theta(wi) * INV_PI
         } else {

@@ -19,7 +19,7 @@ impl BSDF {
         let ns = si.shading.n;
         let ng = si.base.n;
         let ss = si.shading.dpdu.normalize();
-        let ts = ns.cross(&ss);
+        let ts = ns.cross(&ss).normalize();
 
         let mut bxdfs = Vec::new();
         for _ in 0..MAX_BXDFS {
@@ -224,7 +224,7 @@ impl BSDF {
         ret
     }
 
-    pub fn pdf(&self, wi: &Vector3, wo: &Vector3, flags: Option<BxDFType>) -> f32 {
+    pub fn pdf(&self, wo: &Vector3, wi: &Vector3, flags: Option<BxDFType>) -> f32 {
         let flags = flags.unwrap_or(BxDFType::BSDF_ALL);
 
         if self.n_bxdfs == 0 {

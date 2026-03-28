@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Normal3, Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, cos_theta, face_forward, interaction::TransportMode, spectrum::Spectrum}, reflection::fresnel::{Fresnel, FresnelDielectric, FresnelNoOp}, registry::{Manufacturable}};
+use crate::{core::{Normal3, Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, cos_theta, face_forward, interaction::TransportMode, spectrum::Spectrum}, loader::Parameters, reflection::fresnel::{Fresnel, FresnelDielectric, FresnelNoOp}, registry::Manufacturable};
 
 pub fn refract(wi: &Vector3, n: &Normal3, eta: f32, wt: &mut Vector3) -> bool {
     let cos_theta_i = n.dot(wi);
@@ -54,12 +54,19 @@ impl BxDFT for SpecularReflection {
 
     fn sample_f(&self, wo: &crate::core::Vector3, wi: &mut crate::core::Vector3, _sample: &crate::core::Point2, pdf: &mut f32, _sampled_type: Option<crate::core::bxdf::BxDFType>) -> Spectrum {
         *wi = Vector3::new(-wo.x, -wo.y, wo.z);
+
+        let cos = abs_cos_theta(wi);
+        if cos == 0.0 || !cos.is_finite() {
+            *pdf = 0.0;
+            return Spectrum::zeros();
+        }
+
         *pdf = 1.0;
 
-        self.fresnel.evaluate(cos_theta(wi)).component_mul(&self.r) / abs_cos_theta(&wi)
+        self.fresnel.evaluate(cos_theta(wi)).component_mul(&self.r) / cos
     }
 
-    fn pdf(&self, _wi: &crate::core::Vector3, _wo: &crate::core::Vector3) -> f32 {
+    fn pdf(&self, _wo: &crate::core::Vector3, _wi: &crate::core::Vector3) -> f32 {
         0.0
     }
 }
@@ -118,12 +125,12 @@ impl SpecularTransmission {
         }
     }
 
-    pub fn init(t: Spectrum, eta_a: f32, eta_b: f32, fresnel: Arc<Fresnel>, mode: TransportMode) -> Self {
+    pub fn init(t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode) -> Self {
         Self {
             t,
             eta_a,
             eta_b,
-            fresnel,
+            fresnel: Arc::new(Fresnel::Dielectric(FresnelDielectric::init(eta_a, eta_b))),
             mode,
             b_type: BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR
         }
@@ -166,16 +173,12 @@ impl BxDFT for SpecularTransmission {
 }
 
 impl Manufacturable<BxDF> for SpecularTransmission {
-    fn create_from_parameters(param: crate::loader::Parameters) -> BxDF {
+    fn create_from_parameters(param: Parameters) -> BxDF {
         let t = param.get_vector3("t", Some(Vector3::zeros()));
 
-        let eta_a = param.get_float("eta_a", Some(0.0));
-        let eta_b = param.get_float("eta_b", Some(0.0));
+        let eta_a = param.get_float("eta_a", Some(1.0));
+        let eta_b = param.get_float("eta_b", Some(1.5));
         let mode_str = param.get_string("transport_mode", Some("radiance".to_string()));
-
-        let fresnel = Fresnel::Dielectric(
-            FresnelDielectric::init(eta_a, eta_b)
-        );
 
         let mode = if mode_str == "radiance" {
             TransportMode::Radiance
@@ -188,7 +191,6 @@ impl Manufacturable<BxDF> for SpecularTransmission {
                 t,
                 eta_a,
                 eta_b,
-                Arc::new(fresnel),
                 mode
             )
         )
