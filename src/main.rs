@@ -22,6 +22,7 @@ use crate::material::glass::GlassMaterial;
 // Fresnel
 use crate::reflection::fresnel::{FresnelConductor, FresnelDielectric, FresnelNoOp};
 
+use crate::sampler::halton::HaltonSampler;
 // Textures
 use crate::texture::checkerboard_texture::CheckerboardTexture;
 use crate::texture::constant::ConstantTexture;
@@ -32,7 +33,7 @@ use crate::texture::scale::ScaleTexture;
 use crate::texture::uv_mapping::UVMapping2D;
 
 // Samplers
-use crate::sampler::stratified_sampler::StratifiedSampler;
+use crate::sampler::stratified::StratifiedSampler;
 
 // Shapes
 use crate::shape::Sphere;
@@ -134,6 +135,13 @@ fn main() {
         "stratified".to_string(),
         Box::new(|params| {
             StratifiedSampler::create_from_parameters(params)
+        }),
+    );
+
+    registry.register_sampler(
+        "halton".to_string(),
+        Box::new(|params| {
+            HaltonSampler::create_from_parameters(params)
         }),
     );
 

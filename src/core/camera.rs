@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{camera::{orthographic::OrthographicCamera, perspective::PerspectiveCamera}, core::{Point2, Printable, Ray, RayDifferential, Transform, Vector3, bounds::Bounds2, film::Film, interaction::Interaction, light::VisibilityTester, medium::Medium, scaling, spectrum::Spectrum, translation}, registry::Manufacturable};
+use crate::{camera::{orthographic::OrthographicCamera, perspective::PerspectiveCamera}, core::{Point2, Printable, Ray, RayDifferential, Transform, Vector3, bounds::Bounds2, film::Film, interaction::InteractionBase, light::VisibilityTester, medium::Medium, scaling, spectrum::Spectrum, translation}, registry::Manufacturable};
 
 
 
@@ -82,7 +82,7 @@ impl Camera {
         }
     }
 
-    pub fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
+    pub fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) {
         match self {
             Self::Orthographic(cam) => cam.pdf_we(ray, pdf_pos, pdf_dir),
             Self::Perspective(cam) => cam.pdf_we(ray, pdf_pos, pdf_dir),
@@ -90,7 +90,7 @@ impl Camera {
         }
     }
 
-    pub fn sample_wi(&self, reference: &Interaction, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum {
+    pub fn sample_wi(&self, reference: &InteractionBase, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum {
         match self {
             Self::Orthographic(cam) => cam.sample_wi(reference, u, wi, pdf, p_raster, vis),
             Self::Perspective(cam) => cam.sample_wi(reference, u, wi, pdf, p_raster, vis),
@@ -152,8 +152,8 @@ pub trait CameraT: Manufacturable<Camera> + Printable {
     
     fn generate_ray(&self, sample: CameraSample, ray: &mut Ray) -> f32;
     fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum;
-    fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum;
-    fn sample_wi(&self, reference: &Interaction, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum;
+    fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32);
+    fn sample_wi(&self, reference: &InteractionBase, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum;
 }
 
 

@@ -1,4 +1,4 @@
-use crate::{core::{ONE_MINUS_EPSILON, Point2, Printable, sampler::{Sampler, SamplerBase, SamplerT}}, registry::Manufacturable, sampler::rng::RNG};
+use crate::{core::{ONE_MINUS_EPSILON, Point2, Printable, sampler::{Sampler, SamplerBase, PixelSamplerT}}, registry::Manufacturable, sampler::rng::RNG};
 
 #[derive(Clone)]
 pub struct StratifiedSampler {
@@ -123,7 +123,7 @@ impl StratifiedSampler {
     }
 }
 
-impl SamplerT for StratifiedSampler {
+impl PixelSamplerT for StratifiedSampler {
     fn get_samples_per_pixel(&self) -> usize { self.base.samples_per_pixel }
     fn get_array_1d_offset(&self) -> usize { self.base.array_1d_offset }
     fn get_array_2d_offset(&self) -> usize { self.base.array_2d_offset }

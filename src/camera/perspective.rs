@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use nalgebra::Matrix4;
 
-use crate::{core::{bounds::Bounds2, INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, spectrum::Spectrum}, loader::Parameters, registry::{LeadObject, Manufacturable}};
+use crate::{core::{INFINITY, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, bounds::Bounds2, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::InteractionBase, lerp, light::VisibilityTester, look_at, medium::Medium, random::concentric_sample_disc, scaling, spectrum::Spectrum}, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 // #[derive(Clone)]
 pub struct PerspectiveCamera {
@@ -87,7 +87,7 @@ impl CameraT for PerspectiveCamera {
 
 
         if self.base.lens_radius > 0.0 {
-            let p_lens = self.base.lens_radius * concentric_sample_disk(&sample.p_lens);
+            let p_lens = self.base.lens_radius * concentric_sample_disc(&sample.p_lens);
 
             let ft = self.base.focal_distance / ray.d.z;
             let p_focus = ray.at(ft);
@@ -106,14 +106,113 @@ impl CameraT for PerspectiveCamera {
         1.0
     }
 
-    fn we(&self, _ray: &Ray, _p_raster2: &mut Point2) -> Spectrum {
-        todo!("orthographic::we")
+    fn we(&self, ray: &Ray, p_raster2: &mut Point2) -> Spectrum {
+        let c2w = self.get_camera_to_world();
+        let cos_theta = ray.d.dot(&c2w.transform_vector(&Vector3::z()));
+
+        if cos_theta <= 0.0 {
+            return Spectrum::zeros();
+        }
+
+        let p_focus = ray.at(
+            if self.base.lens_radius > 0.0 {
+                self.base.focal_distance 
+            } else {
+                1.0
+            } / cos_theta
+        );
+
+        let p_raster = self.base.raster_to_camera.inverse().transform_point(
+            &c2w.inverse().transform_point(&p_focus)
+        );
+
+        *p_raster2 = Point2::new(p_raster.x, p_raster.y);
+
+        let sample_bounds = self.get_film().get_sample_bounds();
+        if  p_raster.x < sample_bounds.p_min.x || 
+            p_raster.y < sample_bounds.p_min.y ||
+            p_raster.x >= sample_bounds.p_max.x ||
+            p_raster.y >= sample_bounds.p_max.y {
+                return Spectrum::zeros();
+        }
+
+        let lens_area = if self.base.lens_radius != 0.0 {
+            PI * self.base.lens_radius * self.base.lens_radius
+        } else {
+            1.0 
+        };
+
+        let cos2_theta = cos_theta * cos_theta;
+        let v = 1.0 / (self.a * lens_area * cos2_theta * cos2_theta);
+
+        Spectrum::new(v, v, v)
     }
-    fn pdf_we(&self, _ray: &Ray, _pdf_pos: &mut f32, _pdf_dir: &mut f32) -> Spectrum {
-        todo!("orthographic::pdf_we")
+
+    fn pdf_we(&self, ray: &Ray, pdf_pos: &mut f32, pdf_dir: &mut f32) {
+        let c2w = self.get_camera_to_world();
+        let cos_theta = ray.d.dot(&c2w.transform_vector(&Vector3::z()));
+
+        if cos_theta <= 0.0 {
+            *pdf_pos = 0.0;
+            *pdf_dir = 0.0;
+            return;
+        }
+
+        let p_focus = ray.at(
+            if self.base.lens_radius > 0.0 {
+                self.base.focal_distance 
+            } else {
+                1.0
+            } / cos_theta
+        );
+
+        let p_raster = self.base.raster_to_camera.inverse().transform_point(
+            &c2w.inverse().transform_point(&p_focus)
+        );
+
+        let sample_bounds = self.get_film().get_sample_bounds();
+        if  p_raster.x < sample_bounds.p_min.x || 
+            p_raster.y < sample_bounds.p_min.y ||
+            p_raster.x >= sample_bounds.p_max.x ||
+            p_raster.y >= sample_bounds.p_max.y {
+                *pdf_pos = 0.0;
+                *pdf_dir = 0.0;
+                return;
+        }
+
+        let lens_area = if self.base.lens_radius != 0.0 {
+            PI * self.base.lens_radius * self.base.lens_radius
+        } else {
+            1.0 
+        };
+
+        *pdf_pos = 1.0 / lens_area;
+        *pdf_dir = 1.0 / (self.a * cos_theta * cos_theta * cos_theta);
     }
-    fn sample_wi(&self, _reference: &Interaction, _u: &Point2, _wi: &mut Vector3, _pdf: &mut f32, _p_raster: &mut Point2, _vis: &mut VisibilityTester) -> Spectrum {
-        todo!("orthographic::sample_wi")
+
+    fn sample_wi(&self, re: &InteractionBase, u: &Point2, wi: &mut Vector3, pdf: &mut f32, p_raster: &mut Point2, vis: &mut VisibilityTester) -> Spectrum {
+        let p_lens = self.base.lens_radius * concentric_sample_disc(u);
+        let p_lens_world = self.get_camera_to_world().transform_point(
+            &Point3::new(p_lens.x, p_lens.y, 0.0)
+        );
+
+        let mut lens_its = InteractionBase::init_no_wo(&p_lens_world, re.time.clone(), re.medium_interface.clone());
+        lens_its.n = self.get_camera_to_world().transform_vector(&Vector3::z());
+
+        *vis = VisibilityTester::init(re, &lens_its);
+        *wi = lens_its.p - re.p;
+        let dist = wi.norm();
+        *wi /= dist;
+
+        let lens_area = if self.base.lens_radius != 0.0 {
+            PI * self.base.lens_radius * self.base.lens_radius
+        } else {
+            1.0
+        };
+
+        *pdf = dist * dist / (lens_its.n.dot(&wi).abs() * lens_area);
+
+        self.we(&lens_its.spawn_ray(&-*wi), p_raster)
     }
 }
 

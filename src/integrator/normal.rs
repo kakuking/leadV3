@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator}, interaction::InteractionT, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Printable, Ray, camera::Camera, integrator::Integrator, interaction::InteractionT, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::sampler_integrator::SamplerIntegrator, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct NormalIntegrator {
     max_depth: usize,

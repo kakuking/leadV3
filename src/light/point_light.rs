@@ -1,4 +1,5 @@
-use crate::{core::{Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionBase, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
+use crate::{core::{INFINITY, Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionBase, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, random::uniform_sample_sphere_pdf, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
+use crate::core::random::uniform_sample_sphere;
 
 #[derive(Debug, Clone)]
 pub struct PointLight {
@@ -53,12 +54,18 @@ impl LightT for PointLight {
 
     fn pdf_li(&self, _re: &InteractionBase, _wi: &Vector3) -> f32 { 0.0 }
     
-    fn sample_le(&self, _u1: &Point2, _u2: &Point2, _time: f32, _ray: &mut Ray, _n_light: &mut Normal3, _pdf_pos: &mut f32, _pdf_dir: &mut f32) -> Spectrum {
-        todo!("PointLight::Sample_Le")
+    fn sample_le(&self, u1: &Point2, _u2: &Point2, time: f32, ray: &mut Ray, n_light: &mut Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
+        *ray = Ray::init(&self.p_light, &uniform_sample_sphere(u1), INFINITY, time, self.medium_interface.inside.clone(), None);
+        *n_light = ray.d;
+        *pdf_pos = 1.0;
+        *pdf_dir = uniform_sample_sphere_pdf();
+
+        self.i
     }
 
-    fn pdf_le(&self, _ray: &Ray, _n_light: &Normal3, _pdf_pos: &mut f32, _pdf_dir: &mut f32) {
-        todo!("PointLight::pdf_le");
+    fn pdf_le(&self, _ray: &Ray, _n_light: &Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) {
+        *pdf_pos = 0.0;
+        *pdf_dir = uniform_sample_sphere_pdf();
     }
 }
 

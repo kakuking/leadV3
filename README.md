@@ -7,6 +7,7 @@ Output of the path tracing integrator on a cornell-box-like input. 144 samples p
 ![Path Tracing Integrator Output](https://github.com/kakuking/leadV3/blob/ad5a98cda0a84d7b3b2f2ee37e32205f0363b9c4/z_output/path.png)
 
 Another output of the path tracing integrator on a cornell-box-like input with a glass sphere in the center. 144 samples per pixel
+
 ![Path Tracing Integrator Output with a Glass Sphere](https://github.com/kakuking/leadV3/blob/ad5a98cda0a84d7b3b2f2ee37e32205f0363b9c4/z_output/glass_path.png)
 
 Output of the direct-lighting integrator on a cornell-box-like input. 144 samples per pixel

@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, SamplerIntegrator, uniform_sample_all_lights, uniform_sample_one_light}, interaction::{Interaction, InteractionT, TransportMode}, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Printable, Ray, camera::Camera, integrator::{Integrator, uniform_sample_all_lights, uniform_sample_one_light}, interaction::{Interaction, InteractionT, TransportMode}, light::LightStrategy, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::sampler_integrator::SamplerIntegrator, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct DirectIntegrator {
     max_depth: u32,

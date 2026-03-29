@@ -136,3 +136,24 @@ pub fn solve_linear_system_2x2(a: [[f32; 2]; 2], b: [f32; 2]) -> Option<(f32, f3
         Some((x0, x1))
     }
 }
+
+pub fn multiplicative_inverse(a: usize, n: usize) -> usize {
+    let (g, x, _) = extended_gcd(a as i64, n as i64);
+
+    assert!(g == 1, "No modular inverse for {} mod {}", a, n);
+
+    x.rem_euclid(n as i64) as usize
+}
+
+pub fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
+    if b == 0 {
+        (a, 1, 0)
+    } else {
+        let (g, x1, y1) = extended_gcd(b, a % b);
+        (g, y1, x1 - (a / b) * y1)
+    }
+}
+
+pub fn mod_i32(a: i32, b: i32) -> i32 {
+    a.rem_euclid(b)
+}

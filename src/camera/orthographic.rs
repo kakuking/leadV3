@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{bounds::Bounds2, INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::Interaction, lerp, light::VisibilityTester, look_at, medium::Medium, sampler::concentric_sample_disk, scaling, spectrum::Spectrum, translation}, loader::Parameters, registry::{LeadObject, Manufacturable}};
+use crate::{core::{INFINITY, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_ray, bounds::Bounds2, camera::{ Camera, CameraSample, CameraT, ProjectedCameraBase}, film::Film, interaction::InteractionBase, lerp, light::VisibilityTester, look_at, medium::Medium, random::concentric_sample_disc, scaling, spectrum::Spectrum, translation}, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 // #[derive(Clone)]
 pub struct OrthographicCamera {
@@ -63,7 +63,7 @@ impl CameraT for OrthographicCamera {
 
 
         if self.base.lens_radius > 0.0 {
-            let p_lens = self.base.lens_radius * concentric_sample_disk(&sample.p_lens);
+            let p_lens = self.base.lens_radius * concentric_sample_disc(&sample.p_lens);
 
             let ft = self.base.focal_distance / ray.d.z;
             let p_focus = ray.at(ft);
@@ -85,10 +85,10 @@ impl CameraT for OrthographicCamera {
     fn we(&self, _ray: &Ray, _p_raster2: &mut Point2) -> Spectrum {
         todo!("orthographic::we")
     }
-    fn pdf_we(&self, _ray: &Ray, _pdf_pos: &mut f32, _pdf_dir: &mut f32) -> Spectrum {
+    fn pdf_we(&self, _ray: &Ray, _pdf_pos: &mut f32, _pdf_dir: &mut f32){
         todo!("orthographic::pdf_we")
     }
-    fn sample_wi(&self, _reference: &Interaction, _u: &Point2, _wi: &mut Vector3, _pdf: &mut f32, _p_raster: &mut Point2, _vis: &mut VisibilityTester) -> Spectrum {
+    fn sample_wi(&self, _reference: &InteractionBase, _u: &Point2, _wi: &mut Vector3, _pdf: &mut f32, _p_raster: &mut Point2, _vis: &mut VisibilityTester) -> Spectrum {
         todo!("orthographic::sample_wi")
     }
 }

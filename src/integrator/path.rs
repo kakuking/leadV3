@@ -1,4 +1,4 @@
-use crate::{core::{Printable, Ray, RayDifferential, Vector3, bxdf::BxDFType, camera::Camera, integrator::{Integrator, SamplerIntegrator, uniform_sample_one_light}, interaction::{Interaction, InteractionT, TransportMode}, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
+use crate::{core::{Printable, Ray, RayDifferential, Vector3, bxdf::BxDFType, camera::Camera, integrator::{Integrator, uniform_sample_one_light}, interaction::{Interaction, InteractionT, TransportMode}, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::sampler_integrator::SamplerIntegrator, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 pub struct PathIntegrator {
     max_depth: usize,

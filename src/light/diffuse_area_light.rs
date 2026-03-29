@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Normal3, PI, Point2, Printable, Ray, Transform, Vector3, interaction::{InteractionBase}, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, shape::Shape, spectrum::Spectrum}, registry::Manufacturable};
+use crate::{core::{Normal3, PI, Point2, Printable, Ray, Transform, Vector3, coordinate_system, interaction::InteractionBase, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, random::{cosine_sample_hemisphere, cosine_sample_hemisphere_pdf}, shape::Shape, spectrum::Spectrum}, registry::Manufacturable};
 
 #[derive(Debug, Clone)]
 pub struct DiffuseAreaLight {
@@ -67,12 +67,29 @@ impl LightT for DiffuseAreaLight {
         self.shape.pdf_interaction(re, wi)
     }
 
-    fn sample_le(&self, _u1: &Point2, _u2: &Point2, _time: f32, _ray: &mut Ray, _n_light: &mut Normal3, _pdf_pos: &mut f32, _pdf_dir: &mut f32) -> Spectrum {
-        todo!("DAL::sample_le");
+    fn sample_le(&self, u1: &Point2, u2: &Point2, _time: f32, ray: &mut Ray, n_light: &mut Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) -> Spectrum {
+        let mut p_shape = self.shape.sample(u1, pdf_pos);
+        p_shape.medium_interface = self.medium_interface.clone();
+        *n_light = p_shape.n;
+
+        let mut w = cosine_sample_hemisphere(*u2);
+        *pdf_dir = cosine_sample_hemisphere_pdf(w.z);
+        let mut v1 = Vector3::zeros();
+        let mut v2 = Vector3::zeros();
+        coordinate_system(&p_shape.n, &mut v1, &mut v2);
+        
+        w = w.x * v1 + w.y * v2 + w.z * p_shape.n;
+
+        *ray = p_shape.spawn_ray(&w);
+
+        self.l(&p_shape, &w)
     }
 
-    fn pdf_le(&self, _ray: &Ray, _n_light: &Normal3, _pdf_pos: &mut f32, _pdf_dir: &mut f32) {
-        todo!("DAL::pdf_le");
+    fn pdf_le(&self, ray: &Ray, n_light: &Normal3, pdf_pos: &mut f32, pdf_dir: &mut f32) {
+        // let its = InteractionBase::init(&ray.o, n_light, &Vector3::zeros(), n_light, ray.time, self.medium_interface.clone());
+
+        *pdf_pos = self.shape.pdf();
+        *pdf_dir = cosine_sample_hemisphere_pdf(n_light.dot(&ray.d));
     }
 
     fn l(&self, its: &InteractionBase, w: &Vector3) -> Spectrum {

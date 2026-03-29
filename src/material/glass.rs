@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::{Fresnel, FresnelNoOp}, specular::{SpecularReflection, SpecularTransmission}}, registry::Manufacturable};
+use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::{specular::SpecularTransmission}, registry::Manufacturable};
 
 
 #[derive(Debug)]

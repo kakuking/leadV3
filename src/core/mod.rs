@@ -19,6 +19,7 @@ pub mod texture;
 pub mod integrator;
 pub mod random;
 pub mod bounds;
+pub mod distribution;
 
 pub mod lead_instance;
 
