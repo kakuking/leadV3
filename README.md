@@ -3,7 +3,18 @@ Because 3rd times the charm!!!
 Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
 ## Sample outputs of the renderer (512x512)
+Output of the volume path tracing integrator on a cornell-box-like input with a specular sphere that has a homogeneous medium inside it, 64 samples per pixel
+
+![Volume Path Tracing Integrator Output with a Fresnel Sphere with an Occupying Homogeneous Medium](https://github.com/kakuking/leadV3/blob/2bc13c0f571d59374f3a97308fd5c293edfe263f/z_output/volume_spec_fresnel.png)
+
+<br>
+
+Output of the volume path tracing integrator on a cornell-box-like input with a simple homogeneous volume, 64 samples per pixel
+
+![Volume Path Tracing Integrator Output with a Homogeneous Medium](https://github.com/kakuking/leadV3/blob/2bc13c0f571d59374f3a97308fd5c293edfe263f/z_output/volume.png)
+
 Output of the path tracing integrator on a cornell-box-like input. 144 samples per pixel
+
 ![Path Tracing Integrator Output](https://github.com/kakuking/leadV3/blob/ad5a98cda0a84d7b3b2f2ee37e32205f0363b9c4/z_output/path.png)
 
 Another output of the path tracing integrator on a cornell-box-like input with a glass sphere in the center. 144 samples per pixel
@@ -11,12 +22,15 @@ Another output of the path tracing integrator on a cornell-box-like input with a
 ![Path Tracing Integrator Output with a Glass Sphere](https://github.com/kakuking/leadV3/blob/ad5a98cda0a84d7b3b2f2ee37e32205f0363b9c4/z_output/glass_path.png)
 
 Output of the direct-lighting integrator on a cornell-box-like input. 144 samples per pixel
+
 ![Direct Lighting Integrator Output](https://github.com/kakuking/leadV3/blob/dc15ba4516de2cfe44917c37d0d6df8f9cee618d/z_output/direct.png)
 
 Output of the color integrator on the cornell-box-like input. 144 samples per pixel
+
 ![Color Integrator Output](https://github.com/kakuking/leadV3/blob/a4dcc7a1ece4c7a44ba954d493d1cbbe43ead0b2/z_output/color.png)
 
 Output of the normal renderer, which on intersection, converts the normal at intersection point to a color. 4 samples per pixel
+
 ![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/4447d525c2316d0460d7f4fc8f4ab80cc32280de/output/normal.png)
 
 - [x] Added Basic Maths 
@@ -51,4 +65,8 @@ Output of the normal renderer, which on intersection, converts the normal at int
 - [x] Added Path Tracing renderer
 - [x] Fixed a terrible bug in BxDF and BxDFt that swapped wo and wi
 - [x] Added a glass material
+- [x] Fixed the glass material
+- [x] Added Homogeneous Medium, and HG Phase function
+- [x] Added Volume Path Integrator
+- [x] Added BSSRDF and Tabulated BSSRDF (dont really use it rn tho)
 - [ ] Add more lights, integrators, and so on...
