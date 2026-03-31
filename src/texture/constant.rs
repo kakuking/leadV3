@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::{core::{Printable, Vector3, spectrum::Spectrum, texture::{Texture, TextureT}}, interaction::surface_interaction::SurfaceInteraction, loader::Parameters, registry::Manufacturable};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConstantTexture {
     value: Spectrum
 }

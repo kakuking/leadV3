@@ -1,15 +1,10 @@
 <scene>
     <!-- Integrator -->
-    <integrator type="path"/>
+    <integrator type="volume"/>
 
     <!-- Sampler -->
-    <!-- <sampler type="stratified">
-        <int name="x_pixel_samples" value="12"/>
-        <int name="y_pixel_samples" value="12"/>
-        <bool name="jitter" value="true"/>
-    </sampler> -->
     <sampler type="halton">
-        <int name="samples_per_pixel" value="144"/>
+        <int name="samples_per_pixel" value="64"/>
         <point2 name="sample_bound_min" value="0, 0"/>
         <point2 name="sample_bound_max" value="512, 512"/>
     </sampler>
@@ -24,7 +19,7 @@
 
         <film type="film" name="film">
             <point2 name="resolution" value="512, 512"/>
-            <string name="filename" value="z_output/path.png"/>
+            <string name="filename" value="z_output/volume.png"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>
 
@@ -127,8 +122,17 @@
         </shape>
         
         <material type="matte">
-            <texture name="kd" type="constant">
-                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            <texture name="kd" type="checkerboard">
+                <mapping type="uv">
+                    <float name="su" value="10"/>
+                    <float name="sv" value="10"/>
+                </mapping>
+                <texture name="tex1" type="constant">
+                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
+                </texture>
+                <texture name="tex2" type="constant">
+                    <vector3 name="value" value="0.0, 0.0, 0.0"/>
+                </texture>
             </texture>
             <texture name="sigma" type="constant">
                 <vector3 name="value" value="0.0, 0.0, 0.0"/>
@@ -141,7 +145,6 @@
         <shape type="mesh">
             <string name="filename" value="z_input/plane.obj"/>
             
-            <!-- <scale value="0.13, 1.0, 0.103"/> -->
             <scale value="0.5, 1.0, 0.5"/>
             <rotate value="0.0, 0.0, 1.0, 180"/>
             <translate value="0.0, 1.999, 0.0"/>
@@ -157,7 +160,6 @@
         </material>
         
         <light type="diffuse">
-            <!-- <vector3 name="l_emit" value="100.0, 100.0, 100.0"/> -->
             <vector3 name="l_emit" value="4.0, 4.0, 4.0"/>
         </light>
     </primitive>
@@ -189,7 +191,12 @@
             <!-- <translate value="0.0, 0.7, 0.0"/> -->
             <translate value="-0.4, 0.5, -0.4"/>
         </shape>
-        
-        <material type="mirror"/>
+        <!-- <material type="mirror"/> -->
+
+        <medium name="inside" type="homogeneous">
+            <vector3 name="sigma_a" value="0.5, 0.5, 0.0"/>
+            <!-- <vector3 name="sigma_s" value="0.8, 0.8, 0.8"/> -->
+            <float name="g" value="0.7"/>
+        </medium>
     </primitive>
 </scene>

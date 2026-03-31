@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
-use crate::{core::{Point2, Printable, Ray, Vector3, bxdf::BxDFType, camera::Camera, interaction::{Interaction, InteractionT}, light::{Light, VisibilityTester, is_delta_light}, random::power_heuristic, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{color::ColorIntegrator, direct::DirectIntegrator, normal::NormalIntegrator, path::PathIntegrator, sampler_integrator::SamplerIntegrator}, interaction::surface_interaction::SurfaceInteraction};
+use crate::{core::{Point2, Printable, Ray, Vector3, bxdf::BxDFType, camera::Camera, interaction::{Interaction, InteractionT}, light::{Light, VisibilityTester, is_delta_light}, random::power_heuristic, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{color::ColorIntegrator, direct::DirectIntegrator, normal::NormalIntegrator, path::PathIntegrator, sampler_integrator::SamplerIntegrator, vol_path::VolumePathIntegrator}, interaction::surface_interaction::SurfaceInteraction};
 
 pub enum Integrator {
     Direct(DirectIntegrator),
     Normal(NormalIntegrator),
     Color(ColorIntegrator),
     Path(PathIntegrator),
+    VolPath(VolumePathIntegrator),
     Empty,
 }
 
@@ -17,6 +18,7 @@ impl Integrator {
             Self::Normal(i) => i.render(scene),
             Self::Color(i) => i.render(scene),
             Self::Path(i) => i.render(scene),
+            Self::VolPath(i) => i.render(scene),
             Self::Empty => panic!("Render called on empty integrator"),
         }
     }
@@ -27,6 +29,7 @@ impl Integrator {
             Self::Normal(i) => i.set_camera(camera),
             Self::Color(i) => i.set_camera(camera),
             Self::Path(i) => i.set_camera(camera),
+            Self::VolPath(i) => i.set_camera(camera),
             Self::Empty => panic!("Set camera called on empty integrator"),
         }
     }
@@ -37,6 +40,7 @@ impl Integrator {
             Self::Normal(i) => i.set_sampler(sampler),
             Self::Color(i) => i.set_sampler(sampler),
             Self::Path(i) => i.set_sampler(sampler),
+            Self::VolPath(i) => i.set_sampler(sampler),
             Self::Empty => panic!("Set sampler called on empty integrator"),
         }
     }
@@ -47,6 +51,7 @@ impl Integrator {
             Self::Normal(i) => i.preprocess(scene),
             Self::Color(i) => i.preprocess(scene),
             Self::Path(i) => i.preprocess(scene),
+            Self::VolPath(i) => i.preprocess(scene),
             Self::Empty => panic!("preprocess called on empty integrator")
         }
     }
@@ -57,6 +62,7 @@ impl Integrator {
             Self::Normal(i) => i.li(ray, scene, sampler, depth),
             Self::Color(i) => i.li(ray, scene, sampler, depth),
             Self::Path(i) => i.li(ray, scene, sampler, depth),
+            Self::VolPath(i) => i.li(ray, scene, sampler, depth),
             Self::Empty => panic!("li called on empty integrator")
         }
     }
@@ -69,6 +75,7 @@ impl Printable for Integrator {
             Self::Normal(i) => i.to_string(),
             Self::Color(i) => i.to_string(),
             Self::Path(i) => i.to_string(),
+            Self::VolPath(i) => i.to_string(),
             Self::Empty => panic!("to String called on empty integrator"),
         }
     }
@@ -102,7 +109,7 @@ pub fn uniform_sample_all_lights(it: &Interaction, scene: &Scene, sampler: &mut 
     l
 }
 
-pub fn uniform_sample_one_light(it: &Interaction, scene: &Scene, sampler: &mut Sampler, _n_light_samples: &Vec<usize>, handle_media: bool) -> Spectrum {
+pub fn uniform_sample_one_light(it: &Interaction, scene: &Scene, sampler: &mut Sampler, handle_media: bool) -> Spectrum {
     let n_lights = scene.lights.len();
     if n_lights == 0 {
         return Spectrum::zeros();
@@ -148,24 +155,34 @@ pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Ligh
                         bsdf.f(&s.get_wo(), &wi, Some(bsdf_flags)) * wi.dot(&s.shading.n).abs()
                     },
                     None => {
-                        eprintln!("No BSDF found in estimate direct");
-                        Spectrum::zeros()
+                        panic!("No BSDF found in estimate direct");
                     }
                 };
             },
-            _ => panic!("Medium Interaction not implemented yet")
+            Interaction::Medium(m) => {
+                f = match &m.phase {
+                    Some(phase) => {
+                        let p = phase.p(m.get_wo(), &wi);
+                        scattering_pdf = p;
+                        Spectrum::new(p, p, p)
+                    },
+                    None => {
+                        panic!("No Phase function found in estimate direct");
+                    }
+                }
+            },
+            _ => panic!("Should not send a interaction base to estimate direct")
         }
 
         if f != Spectrum::zeros() {
-            // println!("F is not zero, checking handle media and allat");
-
             if handle_media {
                 li = li.component_mul(&visibility.tr(scene, sampler));
             } 
-            
-            else if !visibility.unoccluded(scene) {
-                // println!("Scene is occluded, li is black");
-                li = Spectrum::zeros();
+            else {
+                if !visibility.unoccluded(scene) {
+                    // println!("Scene is occluded, li is black");
+                    li = Spectrum::zeros();
+                }
             }
 
             if li != Spectrum::zeros() {
@@ -185,7 +202,7 @@ pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Ligh
     if !is_delta_light(light.get_flags() as u32) {
         // println!("Not a delta light");
         let mut f: Spectrum;// = Spectrum::zeros();
-        let sampled_specular: bool;// = false;
+        let mut sampled_specular: bool = false;
 
         match &it {
             Interaction::Surface(s) => {
@@ -200,8 +217,20 @@ pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Ligh
                     },
                     _ => panic!("No BSDF found on interaction")
                 }
+            },
+            Interaction::Medium(m) => {
+                match &m.phase {
+                    Some(phase) => {
+                        let p = phase.sample_p(m.get_wo(), &mut wi, u_scattering);
+                        f = Spectrum::new(p, p, p);
+                        scattering_pdf = p;
+                    },
+                    None => {
+                        panic!("No Phase function found in estimate direct")
+                    }
+                }
             }
-            _ => panic!("Mediunm interaction not implemented")
+            _ => panic!("Should not be a base its to estimate direct")
         }
 
         if f != Spectrum::zeros() && scattering_pdf > 0.0 {
@@ -219,11 +248,11 @@ pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Ligh
             }
 
             let mut light_its = SurfaceInteraction::new();
-            let ray = it.spawn_ray(&wi);
+            let mut ray = it.spawn_ray(&wi);
             let mut tr = Spectrum::new(1.0, 1.0, 1.0);
 
             let found_surface_its = if handle_media {
-                scene.intersect_tr(&ray, sampler, &mut light_its, &mut tr)
+                scene.intersect_tr(&mut ray, sampler, &mut light_its, &mut tr)
             } else {
                 scene.intersect(&ray, &mut light_its)
             };

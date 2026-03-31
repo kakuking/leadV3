@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{core::{camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, primitive::Primitive, sampler::Sampler, shape::Shape, texture::{Texture, TextureMapping2D}}, loader::Parameters, reflection::fresnel::Fresnel};
+use crate::{core::{camera::Camera, film::Film, filter::Filter, integrator::Integrator, lead_instance::Instance, light::Light, material::Material, medium::Medium, primitive::Primitive, sampler::Sampler, shape::Shape, texture::{Texture, TextureMapping2D}}, loader::Parameters, reflection::fresnel::Fresnel};
 
 
 // #[derive(Clone)]
@@ -17,6 +17,7 @@ pub enum LeadObject {
     Fresnel(Fresnel),
     Texture(Texture),
     TextureMapping(TextureMapping2D),
+    Medium(Medium),
 }
 
 pub trait Manufacturable<T> {
@@ -39,6 +40,7 @@ pub struct Registry {
     pub fresnel_factories: HashMap<String, FactoryFn<Fresnel>>,
     pub texture_factories: HashMap<String, FactoryFn<Texture>>,
     pub texture_mapping_factories: HashMap<String, FactoryFn<TextureMapping2D>>,
+    pub medium_factories: HashMap<String, FactoryFn<Medium>>,
 }
 
 // For everything possible in teh registery, add a register_x, create_x, and add a branch for it in add_to_scene
@@ -56,7 +58,8 @@ impl Registry {
             material_factories: HashMap::new(),
             fresnel_factories: HashMap::new(),
             texture_factories: HashMap::new(),
-            texture_mapping_factories: HashMap::new()
+            texture_mapping_factories: HashMap::new(),
+            medium_factories: HashMap::new()
         }
     }
 
@@ -166,7 +169,7 @@ impl Registry {
     fn create_fresnel(&self, t: String, parameters: Parameters) -> Fresnel {
         match self.fresnel_factories.get(&t) {
             Some(f) => f(parameters),
-            _ => panic!("NO MATERIAL FOUND OF TYPE {}", t),
+            _ => panic!("NO FRESNEL FOUND OF TYPE {}", t),
         }
     }
 
@@ -177,7 +180,7 @@ impl Registry {
     fn create_texture(&self, t: String, parameters: Parameters) -> Texture {
         match self.texture_factories.get(&t) {
             Some(f) => f(parameters),
-            _ => panic!("NO MATERIAL FOUND OF TYPE {}", t),
+            _ => panic!("NO TEXTURE FOUND OF TYPE {}", t),
         }
     }
 
@@ -188,7 +191,18 @@ impl Registry {
     fn create_texture_mapping(&self, t: String, parameters: Parameters) -> TextureMapping2D {
         match self.texture_mapping_factories.get(&t) {
             Some(f) => f(parameters),
-            _ => panic!("NO MATERIAL FOUND OF TYPE {}", t),
+            _ => panic!("NO TEXTURE MAPPING FOUND OF TYPE {}", t),
+        }
+    }
+
+    pub fn register_medium(&mut self, t: String, function: FactoryFn<Medium>) {
+        self.medium_factories.insert(t, function);
+    }
+
+    fn create_medium(&self, t: String, parameters: Parameters) -> Medium {
+        match self.medium_factories.get(&t) {
+            Some(f) => f(parameters),
+            _ => panic!("NO Medium FOUND OF TYPE {}", t),
         }
     }
 
@@ -211,6 +225,7 @@ impl Registry {
             "fresnel" => LeadObject::Fresnel(self.create_fresnel(object_type, parameters)),
             "texture" => LeadObject::Texture(self.create_texture(object_type, parameters)),
             "mapping" => LeadObject::TextureMapping(self.create_texture_mapping(object_type, parameters)),
+            "medium" => LeadObject::Medium(self.create_medium(object_type, parameters)),
             _ => panic!("No lead object found with name {}", object),
         }
     }

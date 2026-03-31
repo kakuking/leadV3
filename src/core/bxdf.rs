@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, reflection::{lambertian::LambertianReflection, specular::{SpecularReflection, SpecularTransmission}}, registry::Manufacturable};
+use crate::{core::{INV_PI, Point2, Printable, Vector3, abs_cos_theta, bssrdf::SeparableBSSRDFAdapter, random::{cosine_sample_hemisphere, same_hemisphere, uniform_sample_hemisphere, uniform_sample_hemisphere_pdf}, spectrum::Spectrum}, reflection::{fresnel::FresnelSpecular, lambertian::LambertianReflection, specular::{SpecularReflection, SpecularTransmission}}, registry::Manufacturable};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,6 +24,8 @@ pub enum BxDF {
     Lambertian(LambertianReflection),
     SpecRefl(SpecularReflection),
     SpecTrans(SpecularTransmission),
+    BSSRDFAdapter(SeparableBSSRDFAdapter),
+    SpecFresnel(FresnelSpecular),
     // FresnelSpecular(FresnelSpecular),
 }
 
@@ -33,6 +35,8 @@ impl BxDF {
             Self::Lambertian(b) => b.get_type(),
             Self::SpecRefl(b) => b.get_type(),
             Self::SpecTrans(b) => b.get_type(),
+            Self::BSSRDFAdapter(b) => b.get_type(),
+            Self::SpecFresnel(b) => b.get_type(),
             // Self::FresnelSpecular(b) => b.get_type() 
         }
     }
@@ -42,6 +46,8 @@ impl BxDF {
             Self::Lambertian(b) => b.set_type(typ),
             Self::SpecRefl(b) => b.set_type(typ),
             Self::SpecTrans(b) => b.set_type(typ),
+            Self::BSSRDFAdapter(b) => b.set_type(typ),
+            Self::SpecFresnel(b) => b.set_type(typ),
             // Self::FresnelSpecular(b) => b.set_type(typ) 
         }
     }
@@ -51,15 +57,19 @@ impl BxDF {
             Self::Lambertian(b) => b.f(wo, wi),
             Self::SpecRefl(b) => b.f(wo, wi),
             Self::SpecTrans(b) => b.f(wo, wi),
+            Self::BSSRDFAdapter(b) => b.f(wo, wi),
+            Self::SpecFresnel(b) => b.f(wo, wi),
             // Self::FresnelSpecular(b) => b.f(wo, wi) 
         }
     }
 
-    pub fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: Option<BxDFType>) -> Spectrum {
+    pub fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, sampled_type: &mut BxDFType) -> Spectrum {
         match self {
             Self::Lambertian(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
             Self::SpecRefl(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
             Self::SpecTrans(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
+            Self::BSSRDFAdapter(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
+            Self::SpecFresnel(b) => b.sample_f(wo, wi, sample, pdf, sampled_type),
             // Self::FresnelSpecular(b) => b.sample_f(wo, wi, sample, pdf, sampled_type)
         }
     }
@@ -69,6 +79,8 @@ impl BxDF {
             Self::Lambertian(b) => b.rho(wo, n_samples, samples),
             Self::SpecRefl(b) => b.rho(wo, n_samples, samples),
             Self::SpecTrans(b) => b.rho(wo, n_samples, samples),
+            Self::BSSRDFAdapter(b) => b.rho(wo, n_samples, samples),
+            Self::SpecFresnel(b) => b.rho(wo, n_samples, samples),
             // Self::FresnelSpecular(b) => b.rho(wo, n_samples, samples)
         }
     }
@@ -78,6 +90,8 @@ impl BxDF {
             Self::Lambertian(b) => b.rho_2(n_samples, samples1, samples2),
             Self::SpecRefl(b) => b.rho_2(n_samples, samples1, samples2),
             Self::SpecTrans(b) => b.rho_2(n_samples, samples1, samples2),
+            Self::BSSRDFAdapter(b) => b.rho_2(n_samples, samples1, samples2),
+            Self::SpecFresnel(b) => b.rho_2(n_samples, samples1, samples2),
             // Self::FresnelSpecular(b) => b.rho_2(n_samples, samples1, samples2)
         }
     }
@@ -87,6 +101,8 @@ impl BxDF {
             Self::Lambertian(b) => b.pdf(wo, wi),
             Self::SpecRefl(b) => b.pdf(wo, wi),
             Self::SpecTrans(b) => b.pdf(wo, wi),
+            Self::BSSRDFAdapter(b) => b.pdf(wo, wi),
+            Self::SpecFresnel(b) => b.pdf(wo, wi),
             // Self::FresnelSpecular(b) => b.pdf(wi, wo)
         }
     }
@@ -106,7 +122,7 @@ pub trait BxDFT: Manufacturable<BxDF> + Printable {
 
     fn f(&self, wo: &Vector3, wi: &Vector3) -> Spectrum;
 
-    fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, _sampled_type: Option<BxDFType>) -> Spectrum {
+    fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &Point2, pdf: &mut f32, _sampled_type: &mut BxDFType) -> Spectrum {
 
         *wi = cosine_sample_hemisphere(*sample);
         if wo.z < 0.0 {
@@ -124,7 +140,8 @@ pub trait BxDFT: Manufacturable<BxDF> + Printable {
             let mut wi = Vector3::zeros();
             let mut pdf = 0.0;
 
-            let f = self.sample_f(wo, &mut wi, &samples[i], &mut pdf, None);
+            let mut samp_type = BxDFType::empty();
+            let f = self.sample_f(wo, &mut wi, &samples[i], &mut pdf, &mut samp_type);
 
             if pdf > 0.0 {
                 r += f * abs_cos_theta(&wi) / pdf;
@@ -144,7 +161,8 @@ pub trait BxDFT: Manufacturable<BxDF> + Printable {
             wo = uniform_sample_hemisphere(&samples1[i]);
             let pdfo = uniform_sample_hemisphere_pdf();
             let mut pdfi = 0.0;
-            let f = self.sample_f(&wo, &mut wi, &samples2[i], &mut pdfi, None);
+            let mut samp_type = BxDFType::empty();
+            let f = self.sample_f(&wo, &mut wi, &samples2[i], &mut pdfi, &mut samp_type);
 
             if pdfi > 0.0 {
                 r += f * abs_cos_theta(&wi) * abs_cos_theta(&wo) / (pdfo * pdfi);

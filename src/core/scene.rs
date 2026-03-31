@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{bounds::Bounds3, Printable, Ray, light::Light, primitive::{Primitive}, sampler::Sampler, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
+use crate::{core::{Printable, Ray, bounds::Bounds3, interaction::InteractionT, light::Light, primitive::Primitive, sampler::Sampler, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
 
 pub struct Scene {
     pub lights: Vec<Arc<Light>>,
@@ -71,8 +71,26 @@ impl Scene {
     pub fn intersect_p(&self, ray: &Ray) -> bool {
         self.aggregate.intersect_p(ray)
     }
-    pub fn intersect_tr(&self, _ray: &Ray, _sampler: &Sampler, _si: &mut SurfaceInteraction, _transmittance: &mut Spectrum) -> bool {
-        panic!("Scene::Intersect_Tr")
+    pub fn intersect_tr(&self, ray: &mut Ray, sampler: &mut Sampler, its: &mut SurfaceInteraction, tr: &mut Spectrum) -> bool {
+        *tr = Spectrum::new(1.0, 1.0, 1.0);
+
+        loop {
+            let hit_surface = self.intersect(ray, its);
+
+            if let Some(med) = &ray.medium {
+                tr.component_mul_assign(&med.tr(ray, sampler));
+            }
+
+            if !hit_surface {
+                return false;
+            }
+
+            if its.primitive.get_material().is_some() {
+                return true;
+            }
+
+            *ray = its.spawn_ray(&ray.d);
+        }
     }
 }
 

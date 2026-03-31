@@ -1,6 +1,8 @@
 use std::thread;
 use std::time::Instant;
 
+use crate::integrator::vol_path::VolumePathIntegrator;
+use crate::medium::homogeneous::HomogeneousMedium;
 use crate::registry::{Registry, Manufacturable};
 use crate::core::Printable;
 
@@ -22,7 +24,6 @@ use crate::material::glass::GlassMaterial;
 // Fresnel
 use crate::reflection::fresnel::{FresnelConductor, FresnelDielectric, FresnelNoOp};
 
-use crate::sampler::halton::HaltonSampler;
 // Textures
 use crate::texture::checkerboard_texture::CheckerboardTexture;
 use crate::texture::constant::ConstantTexture;
@@ -34,6 +35,7 @@ use crate::texture::uv_mapping::UVMapping2D;
 
 // Samplers
 use crate::sampler::stratified::StratifiedSampler;
+use crate::sampler::halton::HaltonSampler;
 
 // Shapes
 use crate::shape::Sphere;
@@ -49,6 +51,7 @@ use crate::integrator::path::PathIntegrator;
 use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::light::point_light::PointLight;
 
+//media and phases
 
 pub mod core;
 pub mod loader;
@@ -64,6 +67,7 @@ pub mod reflection;
 pub mod texture;
 pub mod integrator;
 pub mod material;
+pub mod medium;
 
 fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
     let num_threads = num_threads.min(thread::available_parallelism().unwrap().get());
@@ -201,6 +205,13 @@ fn main() {
         }),
     );
 
+    registry.register_integrator(
+        "volume".to_string(), 
+        Box::new(|params| {
+            VolumePathIntegrator::create_from_parameters(params)
+        }),
+    );
+
     registry.register_material(
         "matte".to_string(), 
         Box::new(|params| {
@@ -289,6 +300,13 @@ fn main() {
         "uv".to_string(), 
         Box::new(|params| {
             UVMapping2D::create_from_parameters(params)
+        })
+    );
+
+    registry.register_medium(
+        "homogeneous".to_string(), 
+        Box::new(|params| {
+            HomogeneousMedium::create_from_parameters(params)
         })
     );
 

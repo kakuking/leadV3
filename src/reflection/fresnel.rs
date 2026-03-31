@@ -1,4 +1,6 @@
-use crate::{core::{Printable, Vector3, spectrum::Spectrum}, registry::Manufacturable};
+use std::sync::Arc;
+
+use crate::{core::{Printable, Vector3, abs_cos_theta, bxdf::{BxDF, BxDFT, BxDFType}, cos_theta, face_forward, interaction::TransportMode, spectrum::Spectrum}, reflection::specular::refract, registry::Manufacturable};
 
 pub fn fr_dielectric(cos_theta_i: f32, eta_i: f32, eta_t: f32) -> f32 {
     let mut cos_theta_i = cos_theta_i.clamp(-1.0, 1.0);
@@ -225,108 +227,134 @@ impl Printable for FresnelNoOp {
     }
 }
 
-// #[derive(Debug, Clone)]
-// pub struct FresnelSpecular {
-//     r: Spectrum,
-//     t: Spectrum,
-//     eta_a: f32,
-//     eta_b: f32,
-//     fresnel: Arc<Fresnel>,
-//     mode: TransportMode,
+#[derive(Debug, Clone)]
+pub struct FresnelSpecular {
+    r: Spectrum,
+    t: Spectrum,
+    eta_a: f32,
+    eta_b: f32,
+    fresnel: Arc<Fresnel>,
+    mode: TransportMode,
 
-//     b_type: BxDFType
-// }
+    b_type: BxDFType
+}
 
-// impl FresnelSpecular {
-//     pub fn new() -> Self {
-//         Self {
-//             r: Spectrum::zeros(),
-//             t: Spectrum::zeros(),
-//             eta_a: 0.0,
-//             eta_b: 0.0,
-//             fresnel: Arc::new(Fresnel::Dielectric(FresnelDielectric::new())),
-//             mode: TransportMode::Radiance,
+impl FresnelSpecular {
+    pub fn new() -> Self {
+        Self {
+            r: Spectrum::zeros(),
+            t: Spectrum::zeros(),
+            eta_a: 0.0,
+            eta_b: 0.0,
+            fresnel: Arc::new(Fresnel::Dielectric(FresnelDielectric::new())),
+            mode: TransportMode::Radiance,
 
-//             b_type: BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR
-//         }
-//     }
+            b_type: BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR
+        }
+    }
 
-//     pub fn init(r: Spectrum, t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode) -> Self {
-//         let fresnel = Fresnel::Dielectric(
-//             FresnelDielectric::init(eta_a, eta_b)
-//         );
+    pub fn init(r: Spectrum, t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode) -> Self {
+        let fresnel = Fresnel::Dielectric(
+            FresnelDielectric::init(eta_a, eta_b)
+        );
 
-//         Self {
-//             r,
-//             t,
-//             eta_a,
-//             eta_b,
-//             fresnel: Arc::new(fresnel),
-//             mode,
-//             b_type: BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR
-//         }
-//     }
-// }
+        Self {
+            r,
+            t,
+            eta_a,
+            eta_b,
+            fresnel: Arc::new(fresnel),
+            mode,
+            b_type: BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR
+        }
+    }
+}
 
-// impl BxDFT for FresnelSpecular {
-//     fn get_type(&self) -> BxDFType { self.b_type }
-//     fn set_type(&mut self, typ: BxDFType) { self.b_type = typ; }
+impl BxDFT for FresnelSpecular {
+    fn get_type(&self) -> BxDFType { self.b_type }
+    fn set_type(&mut self, typ: BxDFType) { self.b_type = typ; }
 
-//     fn f(&self, _wo: &Vector3, _wi: &Vector3) -> Spectrum {
-//         Spectrum::zeros()
-//     }
+    fn f(&self, _wo: &Vector3, _wi: &Vector3) -> Spectrum {
+        Spectrum::zeros()
+    }
 
-//     fn pdf(&self, _wi: &Vector3, _wo: &Vector3) -> f32 {
-//         0.0
-//     }
+    fn pdf(&self, _wi: &Vector3, _wo: &Vector3) -> f32 {
+        0.0
+    }
 
-//     fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &crate::core::Point2, pdf: &mut f32, _sampled_type: Option<BxDFType>) -> Spectrum {
-        
-//     }
-// }
+    fn sample_f(&self, wo: &Vector3, wi: &mut Vector3, sample: &crate::core::Point2, pdf: &mut f32, sampled_type: &mut BxDFType) -> Spectrum {
+        let f = self.fresnel.evaluate(cos_theta(wo)).y;
 
-// impl Manufacturable<BxDF> for FresnelSpecular {
-//     fn create_from_parameters(param: crate::loader::Parameters) -> BxDF {
-//         // r: Spectrum, t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode
+        if sample.x < f {
+            *wi = Vector3::new(-wo.x, -wo.y, wo.z);
 
-//         let r = param.get_vector3("r", Some(Spectrum::zeros()));
-//         let t = param.get_vector3("t", Some(Spectrum::zeros()));
-//         let eta_a = param.get_float("eta_a", Some(0.0));
-//         let eta_b = param.get_float("eta_b", Some(0.0));
-//         let mode_str = param.get_string("mode", Some("radiance".to_string()));
+            *sampled_type = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION;
 
-//         let mode = if mode_str == "radiance" {
-//             TransportMode::Radiance
-//         } else {
-//             TransportMode::Importance
-//         };
+            *pdf = f;
+            return f * self.r / abs_cos_theta(&wi)
+        } else {
+            let entering = cos_theta(wo) > 0.0;
+            let eta_i = if entering { self.eta_a } else { self.eta_b };
+            let eta_t = if entering { self.eta_b } else { self.eta_a };
 
-//         BxDF::FresnelSpecular(
-//             Self::init(
-//                 r, 
-//                 t, 
-//                 eta_a, 
-//                 eta_b, 
-//                 mode
-//             )
-//         )
-//     }
-// }
+            if !refract(wo, &face_forward(&Vector3::z(), wo), eta_i / eta_t, wi) {
+                return Spectrum::zeros();
+            }
 
-// impl Printable for FresnelSpecular {
-//     fn to_string(&self) -> String {
-//         format!(
-//             "Fresnel Specular: [\n
-//             \tr: {}, {}, {}\n
-//             \tt: {}, {}, {}\n
-//             \teta_a: {}\n
-//             \teta_b: {}\n
-//             \tmode: {:?}\n
-//             ]",
-//             self.r.x, self.r.y, self.r.z,
-//             self.t.x, self.t.y, self.t.z,
-//             self.eta_a, self.eta_b,
-//             self.mode
-//         )
-//     }
-// }
+            let mut ft = self.t * (1.0 - f);
+
+            if self.mode == TransportMode::Radiance {
+                ft *= (eta_i * eta_i) / (eta_t * eta_t);
+            }
+
+            *sampled_type = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION;
+            *pdf = 1.0 - f;
+
+            return ft / abs_cos_theta(&wi);
+        }
+    }
+}
+
+impl Manufacturable<BxDF> for FresnelSpecular {
+    fn create_from_parameters(param: crate::loader::Parameters) -> BxDF {
+        let r = param.get_vector3("r", Some(Spectrum::zeros()));
+        let t = param.get_vector3("t", Some(Spectrum::zeros()));
+        let eta_a = param.get_float("eta_a", Some(1.0));
+        let eta_b = param.get_float("eta_b", Some(1.5));
+        let mode_str = param.get_string("mode", Some("radiance".to_string()));
+
+        let mode = if mode_str == "radiance" {
+            TransportMode::Radiance
+        } else {
+            TransportMode::Importance
+        };
+
+        BxDF::SpecFresnel(
+            Self::init(
+                r, 
+                t, 
+                eta_a, 
+                eta_b, 
+                mode
+            )
+        )
+    }
+}
+
+impl Printable for FresnelSpecular {
+    fn to_string(&self) -> String {
+        format!(
+            "Fresnel Specular: [\n
+            \tr: {}, {}, {}\n
+            \tt: {}, {}, {}\n
+            \teta_a: {}\n
+            \teta_b: {}\n
+            \tmode: {:?}\n
+            ]",
+            self.r.x, self.r.y, self.r.z,
+            self.t.x, self.t.y, self.t.z,
+            self.eta_a, self.eta_b,
+            self.mode
+        )
+    }
+}

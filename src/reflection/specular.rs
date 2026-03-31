@@ -52,7 +52,7 @@ impl BxDFT for SpecularReflection {
         Spectrum::zeros()
     }
 
-    fn sample_f(&self, wo: &crate::core::Vector3, wi: &mut crate::core::Vector3, _sample: &crate::core::Point2, pdf: &mut f32, _sampled_type: Option<crate::core::bxdf::BxDFType>) -> Spectrum {
+    fn sample_f(&self, wo: &crate::core::Vector3, wi: &mut crate::core::Vector3, _sample: &crate::core::Point2, pdf: &mut f32, _sampled_type: &mut BxDFType) -> Spectrum {
         *wi = Vector3::new(-wo.x, -wo.y, wo.z);
 
         let cos = abs_cos_theta(wi);
@@ -145,7 +145,7 @@ impl BxDFT for SpecularTransmission {
         Spectrum::zeros()
     }
 
-    fn sample_f(&self, wo: &crate::core::Vector3, wi: &mut crate::core::Vector3, _sample: &crate::core::Point2, pdf: &mut f32, _sampled_type: Option<crate::core::bxdf::BxDFType>) -> Spectrum {
+    fn sample_f(&self, wo: &crate::core::Vector3, wi: &mut crate::core::Vector3, _sample: &crate::core::Point2, pdf: &mut f32, _sampled_type: &mut BxDFType) -> Spectrum {
         let entering = cos_theta(wo) > 0.0;
         let (eta_i, eta_t) = if entering {
             (self.eta_a, self.eta_b)

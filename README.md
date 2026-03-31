@@ -7,8 +7,6 @@ Output of the volume path tracing integrator on a cornell-box-like input with a 
 
 ![Volume Path Tracing Integrator Output with a Fresnel Sphere with an Occupying Homogeneous Medium](https://github.com/kakuking/leadV3/blob/2bc13c0f571d59374f3a97308fd5c293edfe263f/z_output/volume_spec_fresnel.png)
 
-<br>
-
 Output of the volume path tracing integrator on a cornell-box-like input with a simple homogeneous volume, 64 samples per pixel
 
 ![Volume Path Tracing Integrator Output with a Homogeneous Medium](https://github.com/kakuking/leadV3/blob/2bc13c0f571d59374f3a97308fd5c293edfe263f/z_output/volume.png)

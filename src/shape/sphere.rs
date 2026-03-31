@@ -292,7 +292,7 @@ impl Printable for Sphere {
         format!(
             "Sphere [\n\
                 \tradius: {:.3},\n\
-                \tposition: ({:.3}, {:.3}, {:.3})\n\
+                \tposition: ({:.3}, {:.3}, {:.3})\n
             ]",
             self.radius,
             position.x, position.y, position.z

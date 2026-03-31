@@ -67,7 +67,7 @@ impl SamplerIntegrator for DirectIntegrator {
             if self.strategy == LightStrategy::UniformSampleAll {
                 l += uniform_sample_all_lights(&Interaction::Surface(its.clone()), scene, sampler, &self.n_light_samples, false);
             } else {
-                l += uniform_sample_one_light(&Interaction::Surface(its.clone()), scene, sampler, &self.n_light_samples, false);
+                l += uniform_sample_one_light(&Interaction::Surface(its.clone()), scene, sampler, false);
             }
         }
 

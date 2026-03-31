@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
-use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::{specular::SpecularTransmission}, registry::Manufacturable};
+use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::FresnelSpecular}, registry::Manufacturable};
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct GlassMaterial {
+    r: Spectrum,
     t: Spectrum,
     eta_a: f32,
     eta_b: f32,
@@ -16,6 +17,7 @@ pub struct GlassMaterial {
 impl GlassMaterial {
     pub fn new() -> Self {
         Self {
+            r: Spectrum::zeros(),
             t: Spectrum::zeros(),
             eta_a: 0.0,
             eta_b: 0.0,
@@ -24,8 +26,9 @@ impl GlassMaterial {
         }
     }
 
-    pub fn init(bump_map: Option<Arc<Texture>>, t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode) -> Self {
+    pub fn init(r: Spectrum, t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode, bump_map: Option<Arc<Texture>>) -> Self {
         Self {
+            r,
             t,
             eta_a,
             eta_b,
@@ -44,8 +47,9 @@ impl MaterialT for GlassMaterial {
         let bsdf = si.bsdf.as_mut().unwrap();
         // println!("BSDF in mirror: {:?}", bsdf);
         bsdf.add(
-            BxDF::SpecTrans(
-                SpecularTransmission::init(
+            BxDF::SpecFresnel(
+                FresnelSpecular::init(
+                    self.r,
                     self.t,
                     self.eta_a,
                     self.eta_b,
@@ -58,6 +62,7 @@ impl MaterialT for GlassMaterial {
 
 impl Manufacturable<Material> for GlassMaterial {
     fn create_from_parameters(param: crate::loader::Parameters) -> Material {
+        let r = param.get_vector3("r", Some(Vector3::new(1.0, 1.0, 1.0)));
         let t = param.get_vector3("t", Some(Vector3::new(1.0, 1.0, 1.0)));
 
         let eta_a = param.get_float("eta_a", Some(1.0));
@@ -70,7 +75,7 @@ impl Manufacturable<Material> for GlassMaterial {
             TransportMode::Importance
         };
 
-        let mt = Self::init(None, t, eta_a, eta_b, mode);
+        let mt = Self::init(r, t, eta_a, eta_b, mode, None);
 
         Material::Glass(mt)
     }

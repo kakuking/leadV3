@@ -1,6 +1,6 @@
 use std::{cell::Cell, sync::Arc};
 
-use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::{BSDF, BSSRDF}, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::Primitive, shape::Shape, solve_linear_system_2x2, spectrum::Spectrum};
+use crate::core::{Normal3, Point2, Point3, Ray, Vector3, bsdf::BSDF, bssrdf::TabulatedBSSRDF, face_forward, interaction::{InteractionBase, InteractionT, TransportMode}, medium::{Medium, MediumInterface}, primitive::Primitive, shape::Shape, solve_linear_system_2x2, spectrum::Spectrum};
 
 #[derive(Debug, Clone)]
 pub struct Shading {
@@ -38,7 +38,7 @@ pub struct SurfaceInteraction {
     pub shading: Shading,
 
     pub bsdf: Option<BSDF>,
-    pub bssrdf: Option<Arc<BSSRDF>>,
+    pub bssrdf: Option<Arc<TabulatedBSSRDF>>,
 
     pub dpdx: Cell<Vector3>,
     pub dpdy: Cell<Vector3>,
@@ -51,7 +51,7 @@ pub struct SurfaceInteraction {
     pub primitive: Primitive,
 }
 
-impl InteractionT for SurfaceInteraction {
+impl InteractionT for SurfaceInteraction{
     fn new() -> Self {
         Self {
             base: InteractionBase::new(),

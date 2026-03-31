@@ -50,14 +50,6 @@ impl SamplerIntegrator for NormalIntegrator {
 
         its.get_n().clone().map(|x| x.abs())
     }
-
-    fn specular_reflect(&self, _ray: &Ray, _its: &SurfaceInteraction, _scene: &Scene, _sampler: &mut Sampler, _depth: u32) -> Spectrum {
-        panic!("DirectIntegrator::SpecularReflect");
-    }
-    
-    fn specular_transmit(&self, _ray: &Ray, _its: &SurfaceInteraction, _scene: &Scene, _sampler: &mut Sampler, _depth: u32) -> Spectrum {
-        panic!("DirectIntegrator::SpecularTransmit");
-    }
 }
 
 impl Manufacturable<Integrator> for NormalIntegrator {

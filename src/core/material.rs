@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use crate::{core::{Printable, Vector2, bsdf::BSDF, interaction::TransportMode, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, material::{glass::GlassMaterial, matte::MatteMaterial, mirror::MirrorMaterial}, registry::Manufacturable};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Material {
     Matte(MatteMaterial),
     Mirror(MirrorMaterial),

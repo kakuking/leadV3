@@ -113,8 +113,15 @@ impl GeometricPrimitive {
         if !self.get_shape().intersect(ray, &mut t_hit, isect, None) {
             return false
         }
-    
+
         ray.t_max.set(t_hit);
+
+        if self.medium_interface.is_medium_transition() {
+            isect.base.medium_interface = self.medium_interface.clone();
+        } else {
+            isect.base.medium_interface = MediumInterface::init_one(ray.medium.clone());
+        }
+
         true
     }
     
@@ -127,7 +134,7 @@ impl GeometricPrimitive {
     pub fn compute_scattering_function(&self, isect: &mut SurfaceInteraction, mode: TransportMode, allow_multiple_lobes: bool) {
         match &self.material {
             Some(m) => m.compute_scattering_funcitons(isect, mode, allow_multiple_lobes),
-            None => panic!("No Material Found"),
+            None => {},
         }
     }
 
@@ -150,7 +157,25 @@ impl GeometricPrimitive {
             Some(LeadObject::Light(light)) => Some(light),
             _ => None
         };
+
+        let inside = match param.get_lead_object("inside") {
+            Some(LeadObject::Medium(m)) => {
+                println!("Found inside");
+                Some(Arc::new(m))
+            },
+            _ => None,
+        };
+
+        let outside = match param.get_lead_object("outside") {
+            Some(LeadObject::Medium(m)) => {
+                println!("Found outside");
+                Some(Arc::new(m))
+            },
+            _ => None,
+        };
         
+        let mi = MediumInterface::init(inside, outside);
+
         for shape in shapes {
             let shape_arc = Arc::new(shape);
             let cur_light = match light.clone() {
@@ -164,7 +189,7 @@ impl GeometricPrimitive {
                 shape: shape_arc,
                 material: mat.clone(),
                 area_light: cur_light,
-                medium_interface: MediumInterface::new()
+                medium_interface: mi.clone()
             };
 
             primitives.push(

@@ -6,7 +6,6 @@ pub struct PathIntegrator {
     camera: Camera,
     sampler: Sampler,
 
-    n_light_samples: Vec<usize>,
 }
 
 impl SamplerIntegrator for PathIntegrator {
@@ -54,7 +53,7 @@ impl SamplerIntegrator for PathIntegrator {
                 continue;
             }
 
-            l += beta.component_mul(&uniform_sample_one_light(&Interaction::Surface(its.clone()), scene, sampler, &self.n_light_samples, false));
+            l += beta.component_mul(&uniform_sample_one_light(&Interaction::Surface(its.clone()), scene, sampler, false));
 
             let wo = -ray.d;
             let mut wi = Vector3::zeros();
@@ -76,10 +75,9 @@ impl SamplerIntegrator for PathIntegrator {
             bounces += 1;
 
             if false && flags.contains(BxDFType::BSDF_TRANSMISSION) {
-                if let Some(_bssrdf) = &its.bssrdf {
-                    let pi = SurfaceInteraction::new();
-                    // let s = bssrdf.sample_s
-                    let s = Spectrum::zeros();
+                if let Some(bssrdf) = &its.bssrdf {
+                    let mut pi = SurfaceInteraction::new();
+                    let s = bssrdf.sample_s(bssrdf.clone(), scene, sampler.get_1d(), &sampler.get_2d(), &mut pi, &mut pdf);
 
                     if s == Vector3::zeros() || pdf == 0.0 {
                         break;
@@ -87,7 +85,7 @@ impl SamplerIntegrator for PathIntegrator {
 
                     beta.component_mul_assign(&(s/pdf));
 
-                    // l += beta.component_mul(&(uniform_sample_one_light(&Interaction::Medium(pi), scene, sampler, &self.n_light_samples, false)));
+                    l += beta.component_mul(&uniform_sample_one_light(&Interaction::Surface(pi.clone()), scene, sampler, true));
 
                     let f = match &pi.bsdf {
                         Some(bsdf) => bsdf.sample_f(pi.get_wo(), &mut wi, &sampler.get_2d(), &mut pdf, BxDFType::BSDF_ALL, &mut flags),
@@ -126,7 +124,7 @@ impl Manufacturable<Integrator> for PathIntegrator {
             camera: Camera::Empty,
             sampler: Sampler::Empty,
 
-            n_light_samples: Vec::new()
+            // n_light_samples: Vec::new()
         };
 
         Integrator::Path(it)

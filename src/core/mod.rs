@@ -3,6 +3,7 @@ pub mod medium;
 pub mod math;
 pub mod interaction;
 pub mod bsdf;
+pub mod bssrdf;
 pub mod shape;
 pub mod scene;
 pub mod primitive;

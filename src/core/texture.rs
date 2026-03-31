@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::{core::{Point2, Printable, Vector2, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, texture::{checkerboard_texture::CheckerboardTexture, constant::ConstantTexture, scale::ScaleTexture, uv_mapping::UVMapping2D, uv_texture::UVTexture}};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TextureMapping2D {
     UV(UVMapping2D)
 }
@@ -25,7 +25,7 @@ pub trait TextureMapping2DT: Manufacturable<TextureMapping2D> + Printable {
     fn map(&self, si: &SurfaceInteraction, dsdtx: &mut Vector2, dsdty: &mut Vector2) -> Point2;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Texture {
     Constant(ConstantTexture),
     UV(UVTexture),

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::lambertian::LambertianReflection, registry::{LeadObject, Manufacturable}};
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MatteMaterial {
     kd: Arc<Texture>,
     sigma: Arc<Texture>,

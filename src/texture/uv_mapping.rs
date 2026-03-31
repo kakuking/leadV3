@@ -1,7 +1,7 @@
 use crate::{core::{Point2, Printable, Vector2, texture::{TextureMapping2D, TextureMapping2DT}}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UVMapping2D {
     su: f32,
     sv: f32,

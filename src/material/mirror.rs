@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{core::{Printable, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::{Texture}}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::{Fresnel, FresnelNoOp}, specular::SpecularReflection}, registry::Manufacturable};
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MirrorMaterial {
     bump_map: Option<Arc<Texture>>,
 }

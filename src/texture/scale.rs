@@ -3,7 +3,7 @@ use std::{fmt::Debug, sync::Arc};
 use crate::{core::{Printable, spectrum::Spectrum, texture::{Texture, TextureT}}, interaction::surface_interaction::SurfaceInteraction, registry::{LeadObject, Manufacturable}};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ScaleTexture {
     tex1: Arc<Texture>,
     tex2: Arc<Texture>

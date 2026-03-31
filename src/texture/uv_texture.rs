@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{core::{Printable, Vector2, spectrum::Spectrum, texture::{Texture, TextureMapping2D, TextureT}}, interaction::surface_interaction::SurfaceInteraction, registry::{LeadObject, Manufacturable}};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UVTexture {
     mapping: Arc<TextureMapping2D>
 }

@@ -141,7 +141,8 @@ impl BSDF {
 
         *flags = cur_bxdf.get_type();
         
-        let mut f = cur_bxdf.sample_f(&wo, &mut wi, &u_remapped, pdf, Some(typ));
+        let mut fgs = BxDFType::empty();
+        let mut f = cur_bxdf.sample_f(&wo, &mut wi, &u_remapped, pdf, &mut fgs);
 
         if *pdf == 0.0 {
             return Spectrum::zeros();
@@ -256,17 +257,3 @@ impl BSDF {
         }
     }
 }
-
-#[derive(Debug)]
-pub struct BSSRDF {
-    
-}
-
-impl BSSRDF {
-    pub fn new() -> Self {
-        Self {
-            
-        }
-    }
-}
-
