@@ -1,8 +1,6 @@
 use std::thread;
 use std::time::Instant;
 
-use crate::integrator::vol_path::VolumePathIntegrator;
-use crate::medium::homogeneous::HomogeneousMedium;
 use crate::registry::{Registry, Manufacturable};
 use crate::core::Printable;
 
@@ -46,12 +44,15 @@ use crate::integrator::direct::DirectIntegrator;
 use crate::integrator::normal::NormalIntegrator;
 use crate::integrator::color::ColorIntegrator;
 use crate::integrator::path::PathIntegrator;
+use crate::integrator::vol_path::VolumePathIntegrator;
 
 // Lights
 use crate::light::diffuse_area_light::DiffuseAreaLight;
 use crate::light::point_light::PointLight;
 
 //media and phases
+use crate::medium::homogeneous::HomogeneousMedium;
+use crate::medium::heterogeneous::HeterogeneousMedium;
 
 pub mod core;
 pub mod loader;
@@ -307,6 +308,13 @@ fn main() {
         "homogeneous".to_string(), 
         Box::new(|params| {
             HomogeneousMedium::create_from_parameters(params)
+        })
+    );
+
+    registry.register_medium(
+        "heterogeneous".to_string(), 
+        Box::new(|params| {
+            HeterogeneousMedium::create_from_parameters(params)
         })
     );
 

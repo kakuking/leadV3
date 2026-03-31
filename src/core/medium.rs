@@ -1,32 +1,40 @@
 use std::sync::Arc;
 
-use crate::{core::{Point2, Printable, Ray, Vector3, interaction::MediumInteraction, sampler::Sampler, spectrum::Spectrum}, medium::{hg_phase::HenyeyGreenstein, homogeneous::HomogeneousMedium}, registry::Manufacturable};
+use crate::{core::{Point2, Printable, Ray, Transform, Vector3, interaction::MediumInteraction, sampler::Sampler, spectrum::Spectrum}, medium::{heterogeneous::HeterogeneousMedium, hg_phase::HenyeyGreenstein, homogeneous::HomogeneousMedium}, registry::Manufacturable};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Medium {
-    Homogeneous(HomogeneousMedium)
+    Homogeneous(HomogeneousMedium),
+    Heterogeneous(HeterogeneousMedium)
 }
 
 impl Medium {
     pub fn tr(&self, ray: &Ray, sampler: &mut Sampler) -> Spectrum {
         match self {
             Self::Homogeneous(m) => m.tr(ray, sampler),
+            Self::Heterogeneous(m) => m.tr(ray, sampler),
         }
     }
 
     // if returns true, then add medium to teh medium interaction
-    pub fn sample(&self, ray: &Ray, sampler: &mut Sampler, medium_interaction: &mut MediumInteraction) -> (Spectrum, bool) {
+    pub fn sample(&self, ray: &Ray, sampler: &mut Sampler, medium_interaction: &mut MediumInteraction, medium: Arc<Medium>) -> Spectrum {
         match self {
-            Self::Homogeneous(m) => {
-                m.sample(ray, sampler, medium_interaction)
-            }
+            Self::Homogeneous(m) => m.sample(ray, sampler, medium_interaction, medium),
+            Self::Heterogeneous(m) => m.sample(ray, sampler, medium_interaction, medium),
+        }
+    }
+
+    pub fn set_world_to_medium(&mut self, world_to_medium: Transform) {
+        match self {
+            Self::Heterogeneous(m) => m.set_world_to_medium(world_to_medium),
+            _ => {}
         }
     }
 }
 
 pub trait MediumT: Manufacturable<Medium> + Printable {
     fn tr(&self, ray: &Ray, sampler: &mut Sampler) -> Spectrum;
-    fn sample(&self, ray: &Ray, sampler: &mut Sampler, mi: &mut MediumInteraction) -> (Spectrum, bool);
+    fn sample(&self, ray: &Ray, sampler: &mut Sampler, mi: &mut MediumInteraction, medium: Arc<Medium>) -> Spectrum;
 }
 
 #[derive(Debug, Clone)]

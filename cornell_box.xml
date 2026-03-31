@@ -122,17 +122,8 @@
         </shape>
         
         <material type="matte">
-            <texture name="kd" type="checkerboard">
-                <mapping type="uv">
-                    <float name="su" value="10"/>
-                    <float name="sv" value="10"/>
-                </mapping>
-                <texture name="tex1" type="constant">
-                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
-                </texture>
-                <texture name="tex2" type="constant">
-                    <vector3 name="value" value="0.0, 0.0, 0.0"/>
-                </texture>
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
             </texture>
             <texture name="sigma" type="constant">
                 <vector3 name="value" value="0.0, 0.0, 0.0"/>
@@ -184,19 +175,28 @@
         </material>
     </primitive>
     
-    <!-- Sphere -->
+    <!-- Monkey Smoke -->
     <primitive type="geometric">
-        <shape type="sphere">            
-            <scale value="0.5, 0.5, 0.5"/>
-            <!-- <translate value="0.0, 0.7, 0.0"/> -->
-            <translate value="-0.4, 0.5, -0.4"/>
+        <shape type="mesh">
+            <!-- The mesh works as a smoke bounding box -->
+            <string name="filename" value="z_input/cube.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, -90"/>
+            <scale value="1.8, 1.8, 1.8"/>
+            <rotate value="0.0, 1.0, 0.0, 90.0"/>
+            <translate value="0.0, 0.0, 0.5"/>
         </shape>
-        <!-- <material type="mirror"/> -->
-
-        <medium name="inside" type="homogeneous">
-            <vector3 name="sigma_a" value="0.5, 0.5, 0.0"/>
-            <!-- <vector3 name="sigma_s" value="0.8, 0.8, 0.8"/> -->
-            <float name="g" value="0.7"/>
-        </medium>
+        <medium name="inside" type="heterogeneous">
+            <string name="filename" value="z_input/monkey.vdb"/>
+            <vector3 name="sigma_s" value="0.0, 0.0, 2.0"/>
+            <vector3 name="sigma_a" value="5.0, 0.0, 0.0"/>
+            <float name="g" value="0.0"/>
+            
+                <!-- Absolute heterogeneous medium transform -->
+                <rotate value="1.0, 0.0, 0.0, -90"/>
+                <scale value="1.7, 1.7, 1.7"/>
+                <rotate value="0.0, 1.0, 0.0, 90.0"/>
+                <translate value="0.0, 0.0, 0.5"/>
+            </medium>
     </primitive>
 </scene>

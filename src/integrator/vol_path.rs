@@ -34,12 +34,7 @@ impl SamplerIntegrator for VolumePathIntegrator {
             let mut mi = MediumInteraction::new();
 
             if let Some(med) = &ray.medium {
-                let (ret, sampled_medium) = 
-                    &med.sample(&ray, sampler, &mut mi);
-                if *sampled_medium {
-                    mi.set_medium(med.clone());
-                };
-                beta.component_mul_assign(ret);
+                beta.component_mul_assign(&med.sample(&ray, sampler, &mut mi, med.clone()));
             }
 
             if beta == Spectrum::zeros() {

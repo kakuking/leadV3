@@ -31,7 +31,7 @@ impl HomogeneousMedium {
 }
 
 impl MediumT for HomogeneousMedium {
-    fn sample(&self, ray: &Ray, sampler: &mut Sampler, mi: &mut MediumInteraction) -> (Spectrum, bool) {
+    fn sample(&self, ray: &Ray, sampler: &mut Sampler, mi: &mut MediumInteraction, medium: Arc<Medium>) -> Spectrum {
         let channel = ((sampler.get_1d() * 3.0) as usize).min(2);
         let dist = -(1.0 - sampler.get_1d()).ln() / self.sigma_t[channel];
         let t = (dist * ray.d.norm()).min(ray.t_max.get());
@@ -44,7 +44,7 @@ impl MediumT for HomogeneousMedium {
         );
 
         if sampled_medium {
-            *mi = MediumInteraction::init_no_normal_one_medium(&ray.at(t), &-ray.d, ray.time, MediumInterface::new(), Some(phase));
+            *mi = MediumInteraction::init_no_normal_one_medium(&ray.at(t), &-ray.d, ray.time, MediumInterface::init_one(Some(medium)), Some(phase));
         }
 
         let tr = (-self.sigma_t * t.min(MAX) * ray.d.norm()).map(|x| x.exp());
@@ -62,11 +62,11 @@ impl MediumT for HomogeneousMedium {
 
         pdf *= 1.0 / 3.0;
 
-        (if sampled_medium {
+        if sampled_medium {
             tr.component_mul(&tr.component_mul(&self.sigma_s)) / pdf
         } else {
             tr / pdf
-        }, sampled_medium)
+        }
     }
 
     fn tr(&self, ray: &Ray, _sampler: &mut Sampler) -> Spectrum {

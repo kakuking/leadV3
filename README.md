@@ -3,6 +3,10 @@ Because 3rd times the charm!!!
 Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
 ## Sample outputs of the renderer (512x512)
+Output of the volume path tracing integrator on a cornell-box-like input with a heterogeneous medium shaped like a Blender Monkey, 64 samples per pixel
+
+![Volume Path Tracing Integrator Output with a Heterogeneous Medium shaped like the Blender Monkey](https://github.com/kakuking/leadV3/blob/d890db7ac5af4d2201053838ed7c468a7a6b752e/z_output/volume_monkey.png)
+
 Output of the volume path tracing integrator on a cornell-box-like input with a specular sphere that has a homogeneous medium inside it, 64 samples per pixel
 
 ![Volume Path Tracing Integrator Output with a Fresnel Sphere with an Occupying Homogeneous Medium](https://github.com/kakuking/leadV3/blob/2bc13c0f571d59374f3a97308fd5c293edfe263f/z_output/volume_spec_fresnel.png)
@@ -67,4 +71,6 @@ Output of the normal renderer, which on intersection, converts the normal at int
 - [x] Added Homogeneous Medium, and HG Phase function
 - [x] Added Volume Path Integrator
 - [x] Added BSSRDF and Tabulated BSSRDF (dont really use it rn tho)
+- [x] Added heterogeneous media
+- [x] Added VDB loading
 - [ ] Add more lights, integrators, and so on...

@@ -265,9 +265,7 @@ impl ShapeT for Sphere {
 
 impl Manufacturable<Shape> for Sphere {
     fn create_from_parameters(param: crate::loader::Parameters) -> Shape {
-        let t = param.get_transform();
-
-        let object_to_world: Transform = t;
+        let object_to_world: Transform = param.get_transform();
         let world_to_object: Transform = object_to_world.inverse();
         
         let reverse_orientation: bool = param.get_bool("reverse_orientation", Some(false));
