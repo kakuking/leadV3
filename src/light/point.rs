@@ -1,7 +1,7 @@
 use crate::{core::{INFINITY, Normal3, PI, Point2, Point3, Printable, Ray, Transform, Vector3, interaction::InteractionBase, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, random::uniform_sample_sphere_pdf, spectrum::Spectrum}, loader::Parameters, registry::Manufacturable};
 use crate::core::random::uniform_sample_sphere;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PointLight {
     flags: LightFlags,
     n_samples: u32,

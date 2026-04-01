@@ -187,20 +187,19 @@
             
             <rotate value="1.0, 0.0, 0.0, -90"/>
             <scale value="1.8, 1.8, 1.8"/>
-            <rotate value="0.0, 1.0, 0.0, 90.0"/>
-            <translate value="1.0, 0.0, 1.0"/>
+            <!-- <rotate value="0.0, 1.0, 0.0, 90.0"/> -->
+            <translate value="0.0, 1.0, 0.0"/>
         </shape>
         <medium name="inside" type="heterogeneous">
-            <string name="filename" value="z_input/smoke_inflow.vdb"/>
+            <string name="filename" value="z_input/smoke.vdb"/>
             <vector3 name="sigma_s" value="10.0, 5.0, 2.0"/>
-            <vector3 name="sigma_a" value="5.0, 0.0, 0.0"/>
+            <vector3 name="sigma_a" value="10.0, 0.0, 0.0"/>
             <float name="g" value="0.0"/>
             
                 <!-- Absolute heterogeneous medium transform -->
                 <rotate value="1.0, 0.0, 0.0, -90"/>
-                <scale value="1.7, 1.7, 1.7"/>
-                <rotate value="0.0, 1.0, 0.0, 90.0"/>
-                <translate value="1.0, 0.0, 1.0"/>
+                <!-- <rotate value="0.0, 0.0, 1.0, 90.0"/> -->
+                <translate value="0.0, 0.5, 0.0"/>
             </medium>
     </primitive>
 </scene>

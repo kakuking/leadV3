@@ -1,3 +1,4 @@
+use std::env;
 use std::thread;
 use std::time::Instant;
 
@@ -47,8 +48,9 @@ use crate::integrator::path::PathIntegrator;
 use crate::integrator::vol_path::VolumePathIntegrator;
 
 // Lights
-use crate::light::diffuse_area_light::DiffuseAreaLight;
-use crate::light::point_light::PointLight;
+use crate::light::diffuse_area::DiffuseAreaLight;
+use crate::light::point::PointLight;
+use crate::light::directional::DirectionalLight;
 
 //media and phases
 use crate::medium::homogeneous::HomogeneousMedium;
@@ -70,7 +72,7 @@ pub mod integrator;
 pub mod material;
 pub mod medium;
 
-fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
+fn load_scene_and_render(registry: &Registry, filename: String, num_threads: usize) {
     let num_threads = num_threads.min(thread::available_parallelism().unwrap().get());
     
     let pool = rayon::ThreadPoolBuilder::new()
@@ -78,7 +80,7 @@ fn load_scene_and_render_hit_ppm(registry: &Registry, num_threads: usize) {
         .build()
         .unwrap();
 
-    let mut instance = match loader::parse_xml("cornell_box.xml", registry) {
+    let mut instance = match loader::parse_xml(&filename, registry) {
         Some(s) => s,
         _ => panic!("No scene found!"),
     };
@@ -178,6 +180,20 @@ fn main() {
         }),
     );
 
+    registry.register_light(
+        "diffuse".to_string(), 
+        Box::new(|params| {
+            DiffuseAreaLight::create_from_parameters(params)
+        })
+    );
+
+    registry.register_light(
+        "directional".to_string(), 
+        Box::new(|params| {
+            DirectionalLight::create_from_parameters(params)
+        })
+    );
+
     registry.register_integrator(
         "direct".to_string(), 
         Box::new(|params| {
@@ -238,13 +254,6 @@ fn main() {
         "geometric".to_string(),
         Box::new(|params| {
             GeometricPrimitive::create_from_parameters(params)
-        })
-    );
-
-    registry.register_light(
-        "diffuse".to_string(), 
-        Box::new(|params| {
-            DiffuseAreaLight::create_from_parameters(params)
         })
     );
 
@@ -318,5 +327,13 @@ fn main() {
         })
     );
 
-    load_scene_and_render_hit_ppm(&registry, 20);
+    let args: Vec<String> = env::args().collect();
+
+    let filename = if args.len() > 1 {
+        args[1].clone()
+    } else {
+        "cornell_box.xml".to_string()
+    };
+
+    load_scene_and_render(&registry, filename, 20);
 }

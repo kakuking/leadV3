@@ -2,7 +2,7 @@ use crate::{core::{Point2, Printable, Ray, Transform, Vector3, apply_transform_t
 
 use crate::shape::{Sphere};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Shape {
     Empty,
     Sphere(Sphere),

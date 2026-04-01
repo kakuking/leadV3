@@ -347,7 +347,7 @@ impl BVHAccel {
         panic!("Should not call this for a aggregate!")
     }
 
-    pub fn get_area_light(&self) -> Option<Arc<Light>> {
+    pub fn get_area_light(&self) -> Option<Light> {
         panic!("Should not call this for a aggregate!")
     }
 

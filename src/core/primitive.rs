@@ -50,7 +50,7 @@ impl Primitive {
         }
     }
 
-    pub fn get_area_light(&self) -> Option<Arc<Light>> {
+    pub fn get_area_light(&self) -> Option<Light> {
         match self {
             Self::Empty => panic!("get_area_light called on empty primitive"),
             Self::Geometric(g) => { g.get_area_light().clone() }
@@ -89,12 +89,12 @@ impl Primitive {
 pub struct GeometricPrimitive {
     shape: Arc<Shape>,
     material: Option<Arc<Material>>,
-    area_light: Option<Arc<Light>>,
+    area_light: Option<Light>,
     medium_interface: MediumInterface
 }
 
 impl GeometricPrimitive {
-    pub fn init(shape: Arc<Shape>, material: Option<Arc<Material>>, area_light: Option<Arc<Light>>, medium_interface: MediumInterface) -> Self {
+    pub fn init(shape: Arc<Shape>, material: Option<Arc<Material>>, area_light: Option<Light>, medium_interface: MediumInterface) -> Self {
         Self {
             shape,
             material,
@@ -105,7 +105,7 @@ impl GeometricPrimitive {
 
     pub fn get_shape(&self) -> &Arc<Shape> { &self.shape }
     pub fn get_material(&self) -> &Option<Arc<Material>> { &self.material }
-    pub fn get_area_light(&self) -> &Option<Arc<Light>> { &self.area_light }
+    pub fn get_area_light(&self) -> &Option<Light> { &self.area_light }
     pub fn get_medium_interface(&self) -> &MediumInterface { &self.medium_interface }
     
     pub fn intersect(&self, ray: &Ray, isect: &mut SurfaceInteraction) -> bool {
@@ -181,7 +181,7 @@ impl GeometricPrimitive {
             let cur_light = match light.clone() {
                 Some(mut l) => {
                     l.add_shape(shape_arc.clone()); 
-                    Some(Arc::new(l))},
+                    Some(l)},
                 None => None
             };
 

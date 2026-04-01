@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{core::{Point2, Printable, Ray, Vector3, bxdf::BxDFType, camera::Camera, interaction::{Interaction, InteractionT}, light::{Light, VisibilityTester, is_delta_light}, random::power_heuristic, sampler::Sampler, scene::Scene, spectrum::Spectrum}, integrator::{color::ColorIntegrator, direct::DirectIntegrator, normal::NormalIntegrator, path::PathIntegrator, sampler_integrator::SamplerIntegrator, vol_path::VolumePathIntegrator}, interaction::surface_interaction::SurfaceInteraction};
 
 pub enum Integrator {
@@ -124,7 +122,7 @@ pub fn uniform_sample_one_light(it: &Interaction, scene: &Scene, sampler: &mut S
     n_lights as f32 * estimate_direct(it, &u_scattering, light, &u_light, scene, sampler, handle_media, false)
 }
 
-pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Light>, u_light: &Point2, scene: &Scene, sampler: &mut Sampler, handle_media: bool, specular: bool) -> Spectrum {
+pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Light, u_light: &Point2, scene: &Scene, sampler: &mut Sampler, handle_media: bool, specular: bool) -> Spectrum {
     let bsdf_flags = if specular {
         BxDFType::BSDF_ALL
     } else {
@@ -263,7 +261,7 @@ pub fn estimate_direct(it: &Interaction, u_scattering: &Point2, light: &Arc<Ligh
             
             if found_surface_its {
                 if let Some(al) = light_its.primitive.get_area_light() {
-                    if Arc::ptr_eq(&al, light) {
+                    if &al == light {
                         // println!("light equals light");
                         li = light_its.le(&-wi);
                     }

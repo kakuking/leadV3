@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{core::{bounds::Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::InteractionBase, permute_p, permute_v, random::uniform_sample_triangle, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::Parameters, registry::Manufacturable};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TriangleMesh {
     pub object_to_world: Arc<Transform>,
     pub n_triangles: usize,
@@ -183,7 +183,7 @@ impl TriangleMesh {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Triangle {
     // object_to_world: Arc<Transform>,
     // world_to_object: Arc<Transform>,

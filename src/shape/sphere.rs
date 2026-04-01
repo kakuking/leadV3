@@ -1,6 +1,6 @@
 use crate::{core::{EPSILON, PI, Point2, Point3, Printable, Ray, Transform, Vector3, apply_transform_to_normal, apply_transform_to_ray, apply_transform_to_surface_interaction, bounds::Bounds3, coordinate_system, gamma, interaction::{InteractionBase, InteractionT}, offset_ray_origin, quadratic, random::{uniform_cone_pdf, uniform_sample_sphere}, shape::{Shape, ShapeT}, spherical_direction_with_ref}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Sphere {
     object_to_world: Transform,
     world_to_object: Transform,

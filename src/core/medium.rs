@@ -61,7 +61,7 @@ pub trait PhaseFunctionT: Manufacturable<PhaseFunction> + Printable {
     fn sample_p(&self, wo: &Vector3, wi: &mut Vector3, u: &Point2) -> f32;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MediumInterface {
     pub inside: Option<Arc<Medium>>,
     pub outside: Option<Arc<Medium>>

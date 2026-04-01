@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{core::{Normal3, PI, Point2, Printable, Ray, Transform, Vector3, coordinate_system, interaction::InteractionBase, light::{Light, LightFlags, LightT, VisibilityTester}, medium::MediumInterface, random::{cosine_sample_hemisphere, cosine_sample_hemisphere_pdf}, shape::Shape, spectrum::Spectrum}, registry::Manufacturable};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DiffuseAreaLight {
     flags: LightFlags,
     n_samples: u32,

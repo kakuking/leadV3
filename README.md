@@ -73,4 +73,5 @@ Output of the normal renderer, which on intersection, converts the normal at int
 - [x] Added BSSRDF and Tabulated BSSRDF (dont really use it rn tho)
 - [x] Added heterogeneous media
 - [x] Added VDB loading
+- [x] Added directional light
 - [ ] Add more lights, integrators, and so on...

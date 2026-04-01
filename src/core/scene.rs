@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{core::{Printable, Ray, bounds::Bounds3, interaction::InteractionT, light::Light, primitive::Primitive, sampler::Sampler, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, shape::bounding_volume_heirarchy::{BVHAccel, SplitMethod}};
 
 pub struct Scene {
-    pub lights: Vec<Arc<Light>>,
+    pub lights: Vec<Light>,
     aggregate: Arc<Primitive>,
     world_bound: Bounds3,
     primitives: Vec<Arc<Primitive>>,
@@ -24,8 +24,8 @@ impl Scene {
         self.create_aggregate();
         self.world_bound = self.aggregate.world_bounds();
 
-        let lights = self.lights.clone();
-        for light in &lights {
+        let mut lights = self.lights.clone();
+        for light in &mut lights {
             light.preprocess(self);
         }
         self.lights = lights;
@@ -41,7 +41,7 @@ impl Scene {
     }
 
     pub fn add_light(&mut self, light: Light) {
-        self.lights.push(Arc::new(light));
+        self.lights.push(light);
     }
 
     fn create_aggregate(&mut self) {
@@ -64,6 +64,7 @@ impl Scene {
     }
 
     pub fn get_world_bounds(&self) -> Bounds3 { self.world_bound.clone() }
+    pub fn set_world_bounds(&mut self, bounds: Bounds3) { self.world_bound = bounds; }
 
     pub fn intersect(&self, ray: &Ray, si: &mut SurfaceInteraction) -> bool {
         self.aggregate.intersect(ray, si)    
