@@ -260,8 +260,6 @@ impl Manufacturable<Medium> for HeterogeneousMedium {
 
         let med = Self::init(sigma_a, sigma_s, g, nx, ny, nz, medium_to_world, density);
 
-        println!("{}", med.to_string());
-
         Medium::Heterogeneous(
             med
         )

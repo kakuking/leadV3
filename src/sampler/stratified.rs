@@ -177,9 +177,9 @@ impl PixelSamplerT for StratifiedSampler {
     }
 
     fn get_2d(&mut self) -> Point2 {
-        if self.current_1d_dim < self.samples_1d.len() {
-            let idx = self.current_1d_dim;
-            self.current_1d_dim += 1;
+        if self.current_2d_dim < self.samples_2d.len() {
+            let idx = self.current_2d_dim;
+            self.current_2d_dim += 1;
             self.samples_2d[idx][self.base.current_pixel_sampler_index]
         } else {
             Point2::new(self.rng.uniform_float(), self.rng.uniform_float())

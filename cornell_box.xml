@@ -160,7 +160,7 @@
     </primitive>
     
     <!-- Cube -->
-    <primitive type="geometric">
+    <!-- <primitive type="geometric">
         <shape type="mesh">
             <string name="filename" value="z_input/cube.obj"/>
             
@@ -177,7 +177,7 @@
                 <vector3 name="value" value="0.0, 0.0, 0.0"/>
             </texture>
         </material>
-    </primitive>
+    </primitive> -->
     
     <!-- Monkey Smoke -->
     <primitive type="geometric">
@@ -188,10 +188,10 @@
             <rotate value="1.0, 0.0, 0.0, -90"/>
             <scale value="1.8, 1.8, 1.8"/>
             <rotate value="0.0, 1.0, 0.0, 90.0"/>
-            <translate value="0.0, 0.0, 0.5"/>
+            <translate value="1.0, 0.0, 1.0"/>
         </shape>
         <medium name="inside" type="heterogeneous">
-            <string name="filename" value="z_input/monkey.vdb"/>
+            <string name="filename" value="z_input/smoke_inflow.vdb"/>
             <vector3 name="sigma_s" value="10.0, 5.0, 2.0"/>
             <vector3 name="sigma_a" value="5.0, 0.0, 0.0"/>
             <float name="g" value="0.0"/>
@@ -200,7 +200,7 @@
                 <rotate value="1.0, 0.0, 0.0, -90"/>
                 <scale value="1.7, 1.7, 1.7"/>
                 <rotate value="0.0, 1.0, 0.0, 90.0"/>
-                <translate value="0.0, 0.0, 0.5"/>
+                <translate value="1.0, 0.0, 1.0"/>
             </medium>
     </primitive>
 </scene>
