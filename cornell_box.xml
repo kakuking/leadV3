@@ -3,11 +3,15 @@
     <integrator type="volume"/>
 
     <!-- Sampler -->
-    <sampler type="halton">
+    <sampler type="stratified">
+        <int name="x_pixel_samples" value="8"/>
+        <int name="y_pixel_samples" value="8"/>
+    </sampler>
+    <!-- <sampler type="halton">
         <int name="samples_per_pixel" value="64"/>
         <point2 name="sample_bound_min" value="0, 0"/>
         <point2 name="sample_bound_max" value="512, 512"/>
-    </sampler>
+    </sampler> -->
 
     <!-- Camera -->
     <camera type="perspective">
@@ -188,7 +192,7 @@
         </shape>
         <medium name="inside" type="heterogeneous">
             <string name="filename" value="z_input/monkey.vdb"/>
-            <vector3 name="sigma_s" value="0.0, 0.0, 2.0"/>
+            <vector3 name="sigma_s" value="10.0, 5.0, 2.0"/>
             <vector3 name="sigma_a" value="5.0, 0.0, 0.0"/>
             <float name="g" value="0.0"/>
             
