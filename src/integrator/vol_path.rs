@@ -50,6 +50,7 @@ impl SamplerIntegrator for VolumePathIntegrator {
                 phase.sample_p(&wo, &mut wi, &sampler.get_2d());
 
                 ray = mi.spawn_ray(&wi);
+                bounces += 1;
             } else {
                 if bounces == 0 || specular_bounce {
                     if found_its {
