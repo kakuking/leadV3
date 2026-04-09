@@ -16,6 +16,7 @@ pub struct HeterogeneousMedium {
     nx: usize,
     ny: usize,
     nz: usize,
+    // bounds_max: Point3,
     density: Vec<f32>,
 
     world_to_medium: Transform,
@@ -34,6 +35,13 @@ impl HeterogeneousMedium {
 
         let inv_max_density = 1.0 / max_density;
 
+        // let max_dim = nx.max(ny).max(nz) as f32;
+        // let bounds_max = Point3::new(
+        //     nx as f32 / max_dim,
+        //     ny as f32 / max_dim,
+        //     nz as f32 / max_dim,
+        // );
+
         Self {
             sigma_a,
             sigma_s,
@@ -41,6 +49,7 @@ impl HeterogeneousMedium {
             nx,
             ny,
             nz,
+            // bounds_max,
             density,
             world_to_medium: medium_to_world.inverse(),
             sigma_t,
@@ -199,7 +208,7 @@ impl MediumT for HeterogeneousMedium {
         let ray = apply_transform_to_ray(
             &Ray::init(
                 &r_world.o, 
-                &r_world.d, 
+                &r_world.d.normalize(), 
                 r_world.t_max.get() * r_world.d.norm(), 
                 0.0, 
                 None, 

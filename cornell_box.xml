@@ -7,11 +7,6 @@
         <int name="x_pixel_samples" value="8"/>
         <int name="y_pixel_samples" value="8"/>
     </sampler>
-    <!-- <sampler type="halton">
-        <int name="samples_per_pixel" value="64"/>
-        <point2 name="sample_bound_min" value="0, 0"/>
-        <point2 name="sample_bound_max" value="512, 512"/>
-    </sampler> -->
 
     <!-- Camera -->
     <camera type="perspective">
@@ -41,17 +36,12 @@
         </shape>
 
         <material type="matte">
-            <texture name="kd" type="checkerboard">
+            <texture name="kd" type="image">
                 <mapping type="uv">
-                    <float name="su" value="10"/>
-                    <float name="sv" value="10"/>
+                    <float name="su" value="1"/>
+                    <float name="sv" value="1"/>
                 </mapping>
-                <texture name="tex1" type="constant">
-                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
-                </texture>
-                <texture name="tex2" type="constant">
-                    <vector3 name="value" value="0.0, 0.0, 0.0"/>
-                </texture>
+                <string name="filename" value="./z_input/dev.png"/>
             </texture>
             <texture name="sigma" type="constant">
                 <vector3 name="value" value="0.0, 0.0, 0.0"/>
@@ -180,14 +170,12 @@
     </primitive> -->
     
     <!-- Monkey Smoke -->
-    <primitive type="geometric">
+    <!-- <primitive type="geometric">
         <shape type="mesh">
-            <!-- The mesh works as a smoke bounding box -->
             <string name="filename" value="z_input/cube.obj"/>
             
             <rotate value="1.0, 0.0, 0.0, -90"/>
             <scale value="1.8, 1.8, 1.8"/>
-            <!-- <rotate value="0.0, 1.0, 0.0, 90.0"/> -->
             <translate value="0.0, 1.0, 0.0"/>
         </shape>
         <medium name="inside" type="heterogeneous">
@@ -196,10 +184,8 @@
             <vector3 name="sigma_a" value="10.0, 0.0, 0.0"/>
             <float name="g" value="0.0"/>
             
-                <!-- Absolute heterogeneous medium transform -->
                 <rotate value="1.0, 0.0, 0.0, -90"/>
-                <!-- <rotate value="0.0, 0.0, 1.0, 90.0"/> -->
                 <translate value="0.0, 0.5, 0.0"/>
             </medium>
-    </primitive>
+    </primitive> -->
 </scene>

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Printable, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::{Texture}}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::{Fresnel, FresnelNoOp}, specular::SpecularReflection}, registry::Manufacturable};
+use crate::{core::{Printable, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::{Fresnel, FresnelNoOp}, specular::SpecularReflection}, registry::{LeadObject, Manufacturable}};
 
 
 #[derive(Debug, PartialEq)]
@@ -50,9 +50,20 @@ impl MaterialT for MirrorMaterial {
 }
 
 impl Manufacturable<Material> for MirrorMaterial {
-    fn create_from_parameters(_param: crate::loader::Parameters) -> Material {
+    fn create_from_parameters(param: crate::loader::Parameters) -> Material {
+        let mut param = param;
+
+        let bump = match param.get_lead_object("bump") {
+            Some(LeadObject::Texture(t)) => {
+                Some(
+                    Arc::new(t)
+                )
+            },
+            _ => None
+        };
+
         let mt = Self {
-            bump_map: None
+            bump_map: bump
         };
 
         Material::Mirror(mt)

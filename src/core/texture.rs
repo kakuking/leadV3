@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{core::{Point2, Printable, Vector2, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, texture::{checkerboard_texture::CheckerboardTexture, constant::ConstantTexture, scale::ScaleTexture, uv_mapping::UVMapping2D, uv_texture::UVTexture}};
+use crate::{core::{Point2, Printable, Vector2, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, texture::{checkerboard::CheckerboardTexture, constant::ConstantTexture, image::ImageTexture, scale::ScaleTexture, uv_mapping::UVMapping2D, uv_texture::UVTexture}};
 
 #[derive(Debug, PartialEq)]
 pub enum TextureMapping2D {
@@ -30,7 +30,8 @@ pub enum Texture {
     Constant(ConstantTexture),
     UV(UVTexture),
     Checkerboard(CheckerboardTexture),
-    Scale(ScaleTexture)
+    Scale(ScaleTexture),
+    Image(ImageTexture)
 }
 
 impl Texture {
@@ -39,7 +40,8 @@ impl Texture {
             Texture::Constant(t) => t.evaluate(si),
             Texture::UV(t) => t.evaluate(si),
             Texture::Checkerboard(t) => t.evaluate(si),
-            Texture::Scale(t) => t.evaluate(si)
+            Texture::Scale(t) => t.evaluate(si),
+            Texture::Image(t) => t.evaluate(si),
         }
     }
 
@@ -48,7 +50,8 @@ impl Texture {
             Texture::Constant(t) => t.to_string(),
             Texture::UV(t) => t.to_string(),
             Texture::Checkerboard(t) => t.to_string(),
-            Texture::Scale(t) => t.to_string()
+            Texture::Scale(t) => t.to_string(),
+            Texture::Image(t) => t.to_string(),
         }
     }
 }

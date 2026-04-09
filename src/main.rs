@@ -24,8 +24,9 @@ use crate::material::glass::GlassMaterial;
 use crate::reflection::fresnel::{FresnelConductor, FresnelDielectric, FresnelNoOp};
 
 // Textures
-use crate::texture::checkerboard_texture::CheckerboardTexture;
+use crate::texture::checkerboard::CheckerboardTexture;
 use crate::texture::constant::ConstantTexture;
+use crate::texture::image::ImageTexture;
 use crate::texture::uv_texture::UVTexture;
 use crate::texture::scale::ScaleTexture;
 
@@ -282,6 +283,13 @@ fn main() {
         "constant".to_string(), 
         Box::new(|params| {
             ConstantTexture::create_from_parameters(params)
+        })
+    );
+
+    registry.register_texture(
+        "image".to_string(), 
+        Box::new(|params| {
+            ImageTexture::create_from_parameters(params)
         })
     );
 

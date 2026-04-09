@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, reflection::{fresnel::FresnelSpecular}, registry::Manufacturable};
+use crate::{core::{Printable, Vector3, bxdf::BxDF, interaction::TransportMode, material::{Material, MaterialT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::Parameters, reflection::fresnel::FresnelSpecular, registry::{LeadObject, Manufacturable}};
 
 
 #[derive(Debug, PartialEq)]
@@ -61,7 +61,9 @@ impl MaterialT for GlassMaterial {
 }
 
 impl Manufacturable<Material> for GlassMaterial {
-    fn create_from_parameters(param: crate::loader::Parameters) -> Material {
+    fn create_from_parameters(param: Parameters) -> Material {
+        let mut param = param;
+
         let r = param.get_vector3("r", Some(Vector3::new(1.0, 1.0, 1.0)));
         let t = param.get_vector3("t", Some(Vector3::new(1.0, 1.0, 1.0)));
 
@@ -75,7 +77,16 @@ impl Manufacturable<Material> for GlassMaterial {
             TransportMode::Importance
         };
 
-        let mt = Self::init(r, t, eta_a, eta_b, mode, None);
+        let bump = match param.get_lead_object("bump") {
+            Some(LeadObject::Texture(t)) => {
+                Some(
+                    Arc::new(t)
+                )
+            },
+            _ => None
+        };
+
+        let mt = Self::init(r, t, eta_a, eta_b, mode, bump);
 
         Material::Glass(mt)
     }
