@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Vector4};
 
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
-use crate::{core::{Point3, Printable, Ray, Transform, apply_transform_to_ray, bounds::Bounds3, interaction::MediumInteraction, lerp, medium::{Medium, MediumInterface, MediumT, PhaseFunction}, sampler::Sampler, spectrum::Spectrum}, medium::hg_phase::HenyeyGreenstein, registry::Manufacturable};
+use crate::{core::{Point3, Printable, Ray, Transform, apply_transform_to_ray, bounds::Bounds3, interaction::MediumInteraction, lerp, medium::{Medium, MediumInterface, MediumT, PhaseFunction}, rotate_angle_axis, sampler::Sampler, spectrum::Spectrum, translation}, medium::hg_phase::HenyeyGreenstein, registry::Manufacturable};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct HeterogeneousMedium {
@@ -16,7 +16,7 @@ pub struct HeterogeneousMedium {
     nx: usize,
     ny: usize,
     nz: usize,
-    // bounds_max: Point3,
+    bounds_max: Point3,
     density: Vec<f32>,
 
     world_to_medium: Transform,
@@ -35,12 +35,12 @@ impl HeterogeneousMedium {
 
         let inv_max_density = 1.0 / max_density;
 
-        // let max_dim = nx.max(ny).max(nz) as f32;
-        // let bounds_max = Point3::new(
-        //     nx as f32 / max_dim,
-        //     ny as f32 / max_dim,
-        //     nz as f32 / max_dim,
-        // );
+        let max_dim = nx.max(ny).max(nz) as f32;
+        let bounds_max = Point3::new(
+            nx as f32 / max_dim,
+            ny as f32 / max_dim,
+            nz as f32 / max_dim,
+        );
 
         Self {
             sigma_a,
@@ -49,7 +49,7 @@ impl HeterogeneousMedium {
             nx,
             ny,
             nz,
-            // bounds_max,
+            bounds_max,
             density,
             world_to_medium: medium_to_world.inverse(),
             sigma_t,
@@ -58,10 +58,16 @@ impl HeterogeneousMedium {
     }
 
     pub fn get_density(&self, p: &Point3) -> f32 {
+        let pn = Point3::new(
+            p.x / self.bounds_max.x,
+            p.y / self.bounds_max.y,
+            p.z / self.bounds_max.z,
+        );
+
         let p_samples = Point3::new(
-            p.x * self.nx as f32 - 0.5,
-            p.y * self.ny as f32 - 0.5,
-            p.z * self.nz as f32 - 0.5,
+            pn.x * self.nx as f32 - 0.5,
+            pn.y * self.ny as f32 - 0.5,
+            pn.z * self.nz as f32 - 0.5,
         );
 
         let pi = p_samples.map(|x| x.floor());
@@ -171,7 +177,8 @@ impl MediumT for HeterogeneousMedium {
             &self.world_to_medium
         );
 
-        let b = Bounds3::init_two(&Point3::origin(), &Point3::new(1.0, 1.0, 1.0));
+        // let b = Bounds3::init_two(&Point3::origin(), &Point3::new(1.0, 1.0, 1.0));
+        let b = Bounds3::init_two(&Point3::origin(), &self.bounds_max);
         let mut t_min: f32 = 0.0;
         let mut t_max: f32 = 0.0;
 
@@ -218,10 +225,11 @@ impl MediumT for HeterogeneousMedium {
             &self.world_to_medium
         );
 
-        let b = Bounds3::init_two(
-            &Point3::origin(), 
-            &Point3::new(1.0, 1.0, 1.0)
-        );
+        // let b = Bounds3::init_two(
+        //     &Point3::origin(), 
+        //     &Point3::new(1.0, 1.0, 1.0)
+        // );
+        let b = Bounds3::init_two(&Point3::origin(), &self.bounds_max);
 
         let mut t_min: f32 = 0.0;
         let mut t_max: f32 = 0.0;
@@ -265,7 +273,12 @@ impl Manufacturable<Medium> for HeterogeneousMedium {
         let sigma_s = param.get_vector3("sigma_s", Some(Vector3::new(1.0, 1.0, 1.0)));
         let g = param.get_float("g", Some(0.0));
 
-        let medium_to_world = param.get_transform();
+        let user_medium_to_world = param.get_transform();
+
+        let to_center = translation(Vector3::new(-0.5, -0.5, -0.5));
+        let to_y_up = rotate_angle_axis(Vector4::new(1.0, 0.0, 0.0, -90.0));
+
+        let medium_to_world = user_medium_to_world * to_y_up * to_center;
 
         let med = Self::init(sigma_a, sigma_s, g, nx, ny, nz, medium_to_world, density);
 
