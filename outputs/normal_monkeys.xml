@@ -4,8 +4,8 @@
 
     <!-- sampler -->
     <sampler type="stratified">
-        <int name="x_pixel_samples" value="4"/>
-        <int name="y_pixel_samples" value="4"/>
+        <int name="x_pixel_samples" value="8"/>
+        <int name="y_pixel_samples" value="8"/>
         <bool name="jitter" value="true"/>
     </sampler>
 
@@ -18,7 +18,7 @@
         <float name="extent" value="2"/>
 
         <film type="film" name="film">
-            <point2 name="resolution" value="512, 512"/>
+            <point2 name="resolution" value="1024, 1024"/>
             <string name="filename" value="outputs/normal_monkeys.png"/>
             <float name="scale" value="1.0"/>
             <float name="diagonal" value="35.0"/>
