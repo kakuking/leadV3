@@ -38,7 +38,7 @@ use crate::sampler::stratified::StratifiedSampler;
 use crate::sampler::halton::HaltonSampler;
 
 // Shapes
-use crate::shape::Sphere;
+use crate::shape::sphere::Sphere;
 use crate::shape::triangle_mesh::TriangleMesh;
 
 // Integrators

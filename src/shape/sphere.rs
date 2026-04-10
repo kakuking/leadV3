@@ -50,8 +50,6 @@ impl ShapeT for Sphere {
         Bounds3::init_two(&p_min, &p_max)
     }
 
-    // fn intersect(&self, ray: &Ray, t_hit: &mut f32, isect: &mut SurfaceInteraction, test_alpha_texture: Option<bool>) -> bool 
-
     fn intersect(&self, ray: &Ray, t_hit: &mut f32, isect: &mut SurfaceInteraction, _test_alpha_texture: Option<bool>) -> bool {
         let mut phi: f32;
         let mut p_hit: Point3;

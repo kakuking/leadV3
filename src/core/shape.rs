@@ -1,12 +1,12 @@
 use crate::{core::{Point2, Printable, Ray, Transform, Vector3, apply_transform_to_bounds, bounds::Bounds3, interaction::{InteractionBase, InteractionT}, transform_swaps_handedness}, interaction::surface_interaction::SurfaceInteraction, registry::Manufacturable, shape::triangle_mesh::Triangle};
 
-use crate::shape::{Sphere};
+use crate::shape::sphere::Sphere;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Shape {
     Empty,
     Sphere(Sphere),
-    Triangle(Triangle)
+    Triangle(Triangle),
 }
 
 impl Shape {
