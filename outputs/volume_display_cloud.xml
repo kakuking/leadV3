@@ -1,0 +1,97 @@
+<scene>
+    <!-- Integrator -->
+    <integrator type="volume">
+        <int name="max_depth" value="8"/>
+    </integrator>
+
+    <!-- Sampler -->
+    <sampler type="stratified">
+        <int name="x_pixel_samples" value="8"/>
+        <int name="y_pixel_samples" value="8"/>
+    </sampler>
+
+    <!-- Camera -->
+    <camera type="perspective">
+        <point3 name="eye" value="4.0, 1.2, 0.0"/>
+        <point3 name="target" value="0.0, 1.0, 0.0"/>
+        <vector3 name="up" value="0.0, 1.0, 0.0"/>
+
+        <float name="extent" value="2"/>
+
+        <film type="film" name="film">
+            <point2 name="resolution" value="1024, 1024"/>
+            <string name="filename" value="outputs/volume_display_cloud.png"/>
+            <float name="scale" value="1.0"/>
+            <float name="diagonal" value="35.0"/>
+
+            <filter type="triangle" name="filter">
+                <vector2 name="radius" value="1.0, 1.0"/>
+            </filter>
+        </film>
+    </camera>
+
+    <!-- Back Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="0.0, 0.0, 1.0, 90"/>
+            <scale value="1.0, 4.0, 5.5"/>
+            <translate value="-2.0, 3.0, 0.0"/>
+        </shape>
+
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.2, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Bottom Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <scale value="3.0, 2.0, 5.5"/>
+            <translate value="0.0, 0.0, 0.0"/>
+        </shape>
+
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.2, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- cloud -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/cube.obj"/>
+            
+            <scale value="3.0, 3.0, 4.0"/>
+            <translate value="0.01, 0.01, 0.0"/>
+        </shape>
+
+        <medium name="inside" type="heterogeneous">
+            <string name="filename" value="./outputs/resources/cloud.vdb"/>
+            <vector3 name="sigma_s" value="50.0, 50.0, 50.0"/>
+            <vector3 name="sigma_a" value="10.0, 0.0, 0.0"/>
+            <float name="g" value="0.0"/>
+
+            <scale value="7.0, 7.0, 7.0"/>
+            <translate value="1.0, 3.5, 0.0"/>
+        </medium>
+    </primitive>
+    
+    <!-- directional light -->
+    <light type="directional">
+        <vector3 name="l" value="10, 10, 10"/>
+        <vector3 name="w_light" value="1, 1, 1"/>
+    </light>
+</scene>

@@ -1,0 +1,187 @@
+<scene>
+    <!-- Integrator -->
+    <integrator type="path"/>
+
+    <!-- Sampler -->
+    <sampler type="stratified">
+        <int name="x_pixel_samples" value="8"/>
+        <int name="y_pixel_samples" value="8"/>
+    </sampler>
+
+    <!-- Camera -->
+    <camera type="perspective">
+        <point3 name="eye" value="2.3, 1.0, 0.0"/>
+        <point3 name="target" value="0.0, 1.0, 0.0"/>
+        <vector3 name="up" value="0.0, 1.0, 0.0"/>
+
+        <float name="extent" value="2"/>
+
+        <film type="film" name="film">
+            <point2 name="resolution" value="1024, 1024"/>
+            <string name="filename" value="outputs/path_cornell_mirror.png"/>
+            <float name="scale" value="1.0"/>
+            <float name="diagonal" value="35.0"/>
+
+            <filter type="triangle" name="filter">
+                <vector2 name="radius" value="1.0, 1.0"/>
+            </filter>
+        </film>
+    </camera>
+
+    <!-- Bottom Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+        </shape>
+
+        <material type="matte">
+            <texture name="kd" type="checkerboard">
+                <mapping type="uv">
+                    <float name="su" value="10"/>
+                    <float name="sv" value="10"/>
+                </mapping>
+                <texture name="tex1" type="constant">
+                    <vector3 name="value" value="0.0, 0.0, 0.0"/>
+                </texture>
+                <texture name="tex2" type="constant">
+                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
+                </texture>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Right Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, 90"/>
+            <translate value="0.0, 1.0, 1.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.0, 0.5, 0.0"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Left Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, -90"/>
+            <translate value="0.0, 1.0, -1.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.5, 0.0, 0.0"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Top Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, 180"/>
+            <translate value="0.0, 2.0, 0.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Back Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="0.0, 0.0, 1.0, 90"/>
+            <translate value="-1.0, 1.0, 0.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+    
+    <!-- Top Light -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <scale value="0.5, 1.0, 0.5"/>
+            <rotate value="0.0, 0.0, 1.0, 180"/>
+            <translate value="0.0, 1.999, 0.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+        
+        <light type="diffuse">
+            <vector3 name="l_emit" value="4.0, 4.0, 4.0"/>
+        </light>
+    </primitive>
+    
+    <!-- Cube -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/cube.obj"/>
+            
+            <scale value="0.3, 0.3, 0.3"/>
+            <rotate value="0.0, 1.0, 0.0, 20"/>
+            <translate value="0.4, 0.0, 0.4"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.5, 0.5, 0.5"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+    
+    <!-- sphere -->
+    <primitive type="geometric">
+        <shape type="sphere">
+            <float name="radius" value="0.5"/>
+
+            <translate value="-0.4, 0.5, -0.4"/>
+        </shape>
+        
+        <material type="mirror"/>
+    </primitive>
+</scene>
