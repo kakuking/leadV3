@@ -2,7 +2,7 @@
 Because 3rd times the charm!!!
 Following [PBR Book, 3rd edition](https://pbr-book.org/3ed-2018)
 
-## Sample outputs of the renderer (512x512)
+## Sample outputs of the renderer (1024x1024)
 Output of the volume path tracing integrator rendering a heterogeneous medium shaped like a cloud devil, 64 samples per pixel
 
 ![Volume Path Tracing Integrator Output with a Heterogeneous Medium shaped like a Cloud](https://github.com/kakuking/leadV3/blob/ac100ef85ca4be562c1d2fa58ffcdd41028b80c3/outputs/volume_display_cloud.png)
@@ -13,7 +13,7 @@ Output of the volume path tracing integrator rendering a heterogeneous medium sh
 
 Output of the volume path tracing integrator on a cornell-box-like input with a heterogeneous medium shaped like a Blender Monkey, 64 samples per pixel
 
-![Volume Path Tracing Integrator Output with a Heterogeneous Medium shaped like the Blender Monkey](https://github.com/kakuking/leadV3/blob/ac100ef85ca4be562c1d2fa58ffcdd41028b80c3/outputs/volume_cornell_monkey.png)
+![Volume Path Tracing Integrator Output with a Heterogeneous Medium shaped like the Blender Monkey](https://github.com/kakuking/leadV3/blob/06a72acf60efd7ab38638d9af55161f6f895bfdc/outputs/volume_cornell_monkey.png)
 
 Output of the volume path tracing integrator on a cornell-box-like input with a specular sphere that has a homogeneous medium inside it, 64 samples per pixel
 
@@ -37,7 +37,7 @@ Output of the color integrator on the cornell-box-like input. 144 samples per pi
 
 Output of the normal renderer, which on intersection, converts the normal at intersection point to a color. 4 samples per pixel
 
-![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/ac100ef85ca4be562c1d2fa58ffcdd41028b80c3/outputs/normal_monkeys.png)
+![Normal Renderer Output](https://github.com/kakuking/leadV3/blob/06a72acf60efd7ab38638d9af55161f6f895bfdc/outputs/normal_monkeys.png)
 
 - [x] Added Basic Maths 
 - [x] Added Vectors, Normals, Points, Bounding Boxes
