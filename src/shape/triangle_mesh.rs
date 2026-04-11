@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{core::{bounds::Bounds3, Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, coordinate_system, face_forward, gamma, interaction::InteractionBase, permute_p, permute_v, random::uniform_sample_triangle, shape::{Shape, ShapeT}, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::Parameters, registry::Manufacturable};
+use crate::{core::{Normal3, Point2, Point3, Printable, Transform, Vector3, apply_transform_to_normal, bounds::Bounds3, coordinate_system, face_forward, gamma, interaction::InteractionBase, permute_p, permute_v, random::uniform_sample_triangle, shape::{Shape, ShapeT}, spectrum::Spectrum, texture::Texture}, interaction::surface_interaction::SurfaceInteraction, loader::Parameters, registry::{LeadObject, Manufacturable}};
 
 #[derive(Debug, PartialEq)]
 pub struct TriangleMesh {
@@ -27,7 +27,7 @@ impl TriangleMesh {
         n: Vec<Normal3>,
         uv: Vec<Point2>,
         name: Option<String>,
-        // alpha_mask: Option<Arc<dyn Texture>>
+        alpha_mask: Option<Arc<Texture>>
     ) -> Self {
         // Transform vertices to world space
         let world_p: Vec<Point3> = p.iter()
@@ -65,19 +65,25 @@ impl TriangleMesh {
             n: world_n,
             uv: world_uv,
             name: name.unwrap_or("Default_Mesh".to_string()),
-            alpha_mask: None
+            alpha_mask
         }
     }
 
     pub fn create_from_parameters(params: Parameters) -> Vec<Shape> {
+        let mut params = params;
         let filename = params.get_string("filename", Some("cube.obj".to_string()));
         let object_to_world = params.get_transform();
 
-        let mesh = Self::load_from_file(filename, object_to_world);
+        let alpha_mask = match params.get_lead_object("alpha") {
+            Some(LeadObject::Texture(t)) => Some(Arc::new(t)),
+            _ => None
+        };
+
+        let mesh = Self::load_from_file(filename, object_to_world, alpha_mask);
         Self::to_triangles(&Arc::new(mesh))
     }
 
-    pub fn load_from_file(filename: String, object_to_world: Transform) -> Self {
+    pub fn load_from_file(filename: String, object_to_world: Transform, alpha_mask: Option<Arc<Texture>>) -> Self {
         let load_options = tobj::LoadOptions {
             triangulate: true,   // IMPORTANT: ensures triangles
             single_index: true,  // positions/normals/uv share indices
@@ -145,6 +151,7 @@ impl TriangleMesh {
             n,
             uv,
             Some(filename),
+            alpha_mask
         )
     }
 
@@ -252,7 +259,12 @@ impl ShapeT for Triangle {
         Bounds3::init_two(p0, p1).union_p(p2)
     }
     
-    fn intersect(&self, ray: &crate::core::Ray, t_hit: &mut f32, isect: &mut crate::interaction::surface_interaction::SurfaceInteraction, _test_alpha_texture: Option<bool>) -> bool {
+    fn intersect(&self, ray: &crate::core::Ray, t_hit: &mut f32, isect: &mut crate::interaction::surface_interaction::SurfaceInteraction, test_alpha_texture: Option<bool>) -> bool {
+        let test_alpha_texture = match test_alpha_texture {
+            Some(t) => t,
+            _ => false
+        };
+
         let p0 = &self.mesh.p[self.v[0]];
         let p1 = &self.mesh.p[self.v[1]];
         let p2 = &self.mesh.p[self.v[2]];
@@ -352,6 +364,25 @@ impl ShapeT for Triangle {
         let uv_hit = Point2::from(
             b0 * uv[0].coords + b1 * uv[1].coords + b2 * uv[2].coords
         );
+
+        if test_alpha_texture {
+            if let Some(alpha) = &self.mesh.alpha_mask {
+                let isect_local = SurfaceInteraction::init(
+                    &p_hit, 
+                    &Vector3::zeros(), 
+                    &uv_hit, &Vector3::zeros(), 
+                    &dpdu, &dpdv, 
+                    &Vector3::zeros(), 
+                    &Vector3::zeros(), 
+                    ray.time, 
+                    None
+                );
+
+                if alpha.evaluate(&isect_local) == Spectrum::zeros() {
+                    return false;
+                }
+            }
+        }
 
         // Fill SurfaceInteraction
         *isect = SurfaceInteraction::init(

@@ -110,7 +110,7 @@ impl GeometricPrimitive {
     
     pub fn intersect(&self, ray: &Ray, isect: &mut SurfaceInteraction) -> bool {
         let mut t_hit = 0.0;
-        if !self.get_shape().intersect(ray, &mut t_hit, isect, None) {
+        if !self.get_shape().intersect(ray, &mut t_hit, isect, Some(true)) {
             return false
         }
 
