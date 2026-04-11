@@ -160,7 +160,6 @@ impl GeometricPrimitive {
 
         let inside = match param.get_lead_object("inside") {
             Some(LeadObject::Medium(m)) => {
-                println!("Found inside");
                 Some(Arc::new(m))
             },
             _ => None,
@@ -168,7 +167,6 @@ impl GeometricPrimitive {
 
         let outside = match param.get_lead_object("outside") {
             Some(LeadObject::Medium(m)) => {
-                println!("Found outside");
                 Some(Arc::new(m))
             },
             _ => None,

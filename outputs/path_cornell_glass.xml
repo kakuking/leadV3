@@ -4,8 +4,7 @@
 
     <!-- Sampler -->
     <sampler type="stratified">
-        <int name="x_pixel_samples" value="8"/>
-        <int name="y_pixel_samples" value="8"/>
+        <vector2 name="samples" value="8, 8"/>
     </sampler>
 
     <!-- Camera -->

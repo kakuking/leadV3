@@ -125,7 +125,7 @@ impl ShapeT for Sphere {
         let big_f = dpdu.dot(&dpdv);
         let big_g = dpdv.dot(&dpdv);
 
-        let n = dpdu.cross(&dpdv).normalize();
+        let n = dpdu.cross(&dpdv).normalize() * if self.reverse_orientation { 1.0 } else { -1.0 };
 
         let e = n.dot(&d2pduu);
         let f = n.dot(&d2pduv);

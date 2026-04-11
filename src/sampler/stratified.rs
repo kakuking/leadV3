@@ -1,4 +1,4 @@
-use crate::{core::{ONE_MINUS_EPSILON, Point2, Printable, sampler::{Sampler, SamplerBase, PixelSamplerT}}, registry::Manufacturable, sampler::rng::RNG};
+use crate::{core::{ONE_MINUS_EPSILON, Point2, Printable, Vector2, sampler::{PixelSamplerT, Sampler, SamplerBase}}, registry::Manufacturable, sampler::rng::RNG};
 
 #[derive(Clone)]
 pub struct StratifiedSampler {
@@ -307,15 +307,14 @@ impl Printable for StratifiedSampler {
 
 impl Manufacturable<Sampler> for StratifiedSampler {
     fn create_from_parameters(param: crate::loader::Parameters) -> Sampler {
-        let x_pixel_samples = param.get_int("x_pixel_samples", Some(1)) as usize;
-        let y_pixel_samples = param.get_int("y_pixel_samples", Some(1)) as usize;
+        let samples = param.get_vector2("samples", Some(Vector2::new(1.0, 1.0)));
         let jitter_samples = param.get_bool("jitter_samples", Some(true));
         let n_sampled_dimensions = param.get_int("n_sampled_dimensions", Some(4)) as usize;
 
         Sampler::Stratified(
             Self::init(
-                x_pixel_samples,
-                y_pixel_samples,
+                samples.x as usize,
+                samples.y as usize,
                 jitter_samples,
                 n_sampled_dimensions,
             )

@@ -1,0 +1,209 @@
+<scene>
+    <!-- Integrator -->
+    <integrator type="volume">
+        <int name="max_depth" value="8"/>
+    </integrator>
+
+    <!-- Sampler -->
+    <sampler type="stratified">
+        <vector2 name="samples" value="8, 8"/>
+    </sampler>
+
+    <!-- Camera -->
+    <camera type="perspective">
+        <point3 name="eye" value="2.3, 1.0, 0.0"/>
+        <point3 name="target" value="0.0, 1.0, 0.0"/>
+        <vector3 name="up" value="0.0, 1.0, 0.0"/>
+
+        <float name="extent" value="2"/>
+
+        <film type="film" name="film">
+            <point2 name="resolution" value="1024, 1024"/>
+            <string name="filename" value="outputs/volume_cornell_tornado.png"/>
+            <float name="scale" value="1.0"/>
+            <float name="diagonal" value="35.0"/>
+
+            <filter type="triangle" name="filter">
+                <vector2 name="radius" value="1.0, 1.0"/>
+            </filter>
+        </film>
+    </camera>
+
+    <!-- Bottom Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+        </shape>
+
+        <material type="matte">
+            <texture name="kd" type="checkerboard">
+                <mapping type="uv">
+                    <float name="su" value="10"/>
+                    <float name="sv" value="10"/>
+                </mapping>
+                <texture name="tex1" type="constant">
+                    <vector3 name="value" value="0.0, 0.0, 0.0"/>
+                </texture>
+                <texture name="tex2" type="constant">
+                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
+                </texture>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Right Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, 90"/>
+            <translate value="0.0, 1.0, 1.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.0, 0.5, 0.0"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Left Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, -90"/>
+            <translate value="0.0, 1.0, -1.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.5, 0.0, 0.0"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Top Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="1.0, 0.0, 0.0, 180"/>
+            <translate value="0.0, 2.0, 0.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+
+    <!-- Back Plane -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <rotate value="0.0, 0.0, 1.0, 90"/>
+            <translate value="-1.0, 1.0, 0.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="checkerboard">
+                <mapping type="uv">
+                    <float name="su" value="10"/>
+                    <float name="sv" value="10"/>
+                </mapping>
+                <texture name="tex1" type="constant">
+                    <vector3 name="value" value="0.35, 0.35, 0.35"/>
+                </texture>
+                <texture name="tex2" type="constant">
+                    <vector3 name="value" value="0.4, 0.4, 0.4"/>
+                </texture>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+    </primitive>
+    
+    <!-- Top Light -->
+    <primitive type="geometric">
+        <shape type="mesh">
+            <string name="filename" value="./outputs/resources/plane.obj"/>
+            
+            <scale value="0.5, 1.0, 0.5"/>
+            <rotate value="0.0, 0.0, 1.0, 180"/>
+            <translate value="0.0, 1.999, 0.0"/>
+        </shape>
+        
+        <material type="matte">
+            <texture name="kd" type="constant">
+                <vector3 name="value" value="0.4, 0.4, 0.4"/>
+            </texture>
+            <texture name="sigma" type="constant">
+                <vector3 name="value" value="0.0, 0.0, 0.0"/>
+            </texture>
+        </material>
+        
+        <light type="diffuse">
+            <vector3 name="l_emit" value="4.0, 4.0, 4.0"/>
+        </light>
+    </primitive>
+
+    <!-- sphere -->
+    <primitive type="geometric">
+        <shape type="sphere">
+            <scale value="0.49, 0.49, 0.49"/>
+            <translate value="0.0, 0.7, 0.0"/>
+        </shape>
+
+        <material type="glass">
+            <float name="eta_a" value="1.0"/>
+            <float name="eta_b" value="1.5"/>
+        </material>
+    </primitive>
+
+    <primitive type="geometric">
+        <shape type="sphere">
+            <scale value="0.5, 0.5, 0.5"/>
+            <translate value="0.0, 0.7, 0.0"/>
+        </shape>
+
+        <material type="glass">
+            <float name="eta_a" value="1.5"/>
+            <float name="eta_b" value="1.0"/>
+        </material>
+    </primitive>
+
+    <!-- tornado -->
+    <primitive type="geometric">
+        <shape type="sphere">
+            <scale value="0.9, 0.9, 0.9"/>
+            <translate value="0.0, 1.0, 0.0"/>
+        </shape>
+
+        <medium name="inside" type="heterogeneous">
+            <string name="filename" value="./outputs/resources/tornado.vdb"/>
+            <vector3 name="sigma_s" value="100.0, 100.0, 100.0"/>
+            <vector3 name="sigma_a" value="10.0, 0.0, 0.0"/>
+            <float name="g" value="0.0"/>
+
+            <scale value="0.5, 0.5, 0.5"/>
+            <translate value="0.0, 0.7, -0.1"/>
+        </medium>
+    </primitive>
+</scene>
