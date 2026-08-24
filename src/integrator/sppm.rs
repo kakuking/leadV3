@@ -2,7 +2,7 @@
 
 // use atomic_float::AtomicF32;
 
-// use crate::{core::{Point2, Point3, Ray, RayDifferential, Vector3, bounds::Bounds2, bsdf::BSDF, bxdf::BxDFType, camera::Camera, distribution::compute_light_power_distribution, integrator::uniform_sample_one_light, interaction::{Interaction, InteractionT, TransportMode}, sampler::{Sampler}, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, sampler::halton::HaltonSampler};
+// use crate::{core::{Point2, Point3, Ray, RayDifferential, Vector3, bounds::{Bounds2, Bounds3}, bsdf::BSDF, bxdf::BxDFType, camera::Camera, distribution::compute_light_power_distribution, integrator::uniform_sample_one_light, interaction::{Interaction, InteractionT, TransportMode}, sampler::Sampler, scene::Scene, spectrum::Spectrum}, interaction::surface_interaction::SurfaceInteraction, sampler::halton::HaltonSampler};
 
 // pub struct VisiblePoint {
 //     pub p: Point3,
@@ -51,6 +51,20 @@
 //             m: AtomicU32::new(0),
 //             n: 0.0,
 //             tau: Spectrum::zeros()
+//         }
+//     }
+// }
+
+// struct SPPMPixelListNode {
+//     pixel: Option<Arc<SPPMPixel>>,
+//     next: Option<Box<SPPMPixelListNode>>
+// }
+
+// impl SPPMPixelListNode {
+//     pub fn new() -> Self {
+//         Self {
+//             pixel: None,
+//             next: None
 //         }
 //     }
 // }
@@ -243,6 +257,69 @@
 //             }
         
 //             // create grid of all SPPM visible points onwards
+//             let hash_size = n_pixels;
+//             let mut grid: Vec<SPPMPixelListNode> = Vec::new();
+//             for _ in 0..hash_size {
+//                 grid.push(SPPMPixelListNode::new());
+//             }
+
+//             let mut grid_bounds = Bounds3::new();
+//             let mut max_radius: f32 = 0.0;
+
+//             for i in 0..n_pixels {
+//                 let pixel = &mut pixels[i];
+
+//                 if pixel.vp.beta == Spectrum::zeros() {
+//                     continue;
+//                 }
+
+//                 let vp_bound = Bounds3::init_one(&pixel.vp.p).expand(pixel.radius);
+//                 grid_bounds = grid_bounds.union(&vp_bound);
+//                 max_radius = max_radius.max(pixel.radius);
+//             }
+
+//             let diag = grid_bounds.diagonal();
+//             let max_diag = diag.max();
+//             let base_grid_res = (max_diag / max_radius) as usize;
+//             let mut grid_res: [usize; 3] = [0, 0, 0];
+
+//             for i in 0..3 {
+//                 grid_res[i] = ((base_grid_res as f32 * diag[i] / max_diag) as usize).max(1);
+//             }
+
+//             for pixel_index in 0..n_pixels {
+//                 let pixel = &pixels[pixel_index];
+
+//                 if pixel.vp.beta != Spectrum::zeros() {
+//                     let radius = pixel.radius;
+//                     let mut p_min = Point3::origin();
+//                     let mut p_max = Point3::origin();
+
+//                     Self::to_grid(&(pixel.vp.p - Vector3::new(radius, radius, radius)), &grid_bounds, &grid_res, &mut p_min);
+//                     Self::to_grid(&(pixel.vp.p + Vector3::new(radius, radius, radius)), &grid_bounds, &grid_res, &mut p_max);
+
+//                     for z in p_min.z as usize..p_max.z as usize {
+//                         for y in p_min.y as usize..p_max.y as usize {
+//                             for x in p_min.x as usize..p_max.x as usize {
+//                                 // from here please some hash bs
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
 //         }
+//     }
+
+//     fn to_grid(p: &Point3, bounds: &Bounds3, grid_res: &[usize; 3], pi: &mut Point3) -> bool {
+//         let mut in_bounds = true;
+//         let pg = bounds.offset(p);
+
+//         for i in 0..3 {
+//             pi[i] = grid_res[i] as f32 * pg[i];
+//             in_bounds &= pi.x >= 0.0 && pi.x < grid_res[i] as f32;
+//             pi[i] = pi.x.clamp(0f32, (grid_res[i] - 1) as f32);
+//         }
+
+//         in_bounds
 //     }
 // }

@@ -421,6 +421,13 @@ impl Bounds3 {
 
         t_min < r.t_max.get() && t_max > 0.0
     }
+
+    pub fn expand(&self, delta: f32) -> Self {
+        let pmin = self.p_min - Vector3::new(delta, delta, delta);
+        let pmax = self.p_max + Vector3::new(delta, delta, delta);
+
+        Self::init_two(&pmin, &pmax)
+    }
 }
 
 

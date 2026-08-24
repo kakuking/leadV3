@@ -79,4 +79,5 @@ Output of the normal renderer, which on intersection, converts the normal at int
 - [x] Added VDB loading
 - [x] Added directional light
 - [x] Fixed heterogeneous volume (scales properly now)
+- [x] Remove python dependency (and thereby, conda dep) from code, its all rust now
 - [ ] Add more lights, integrators, and so on...

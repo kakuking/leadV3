@@ -2,9 +2,6 @@ use std::sync::Arc;
 
 use nalgebra::{Vector3, Vector4};
 
-use pyo3::prelude::*;
-use pyo3::types::PyModule;
-
 use crate::{core::{Point3, Printable, Ray, Transform, apply_transform_to_ray, bounds::Bounds3, interaction::MediumInteraction, lerp, medium::{Medium, MediumInterface, MediumT, PhaseFunction}, rotate_angle_axis, sampler::Sampler, spectrum::Spectrum, translation}, medium::hg_phase::HenyeyGreenstein, registry::Manufacturable};
 
 #[derive(Debug, PartialEq, Clone)]
@@ -106,60 +103,10 @@ impl HeterogeneousMedium {
     }
     
     // 0, 0, 0 is at bottom left corner, act accordingly when applying transform
-    pub fn load_vdb_dense(path: &str, grid_name: &str) -> PyResult<(usize, usize, usize, Vec<f32>)> {
-        Python::attach(|py| {
-            let code = r#"
-import openvdb
+    pub fn load_vdb_dense(path: &str, grid_name: &str) -> Result<(usize, usize, usize, Vec<f32>), helium::reader::error::HeliumError> {
+        let (nx, ny, nz, density) = helium::load_vdb_dense(path, grid_name)?;
 
-def load_dense(path, grid_name):
-    grid = openvdb.read(path, grid_name)
-
-    bmin, bmax = grid.evalActiveVoxelBoundingBox()
-    minx, miny, minz = bmin
-    maxx, maxy, maxz = bmax
-
-    nx = maxx - minx + 1
-    ny = maxy - miny + 1
-    nz = maxz - minz + 1
-
-    data = [0.0] * (nx * ny * nz)
-
-    acc = grid.getConstAccessor()
-
-    for z in range(minz, maxz + 1):
-        for y in range(miny, maxy + 1):
-            for x in range(minx, maxx + 1):
-                value, active = acc.probeValue((x, y, z))
-                if active:
-                    lx = x - minx
-                    ly = y - miny
-                    lz = z - minz
-                    idx = (lz * ny + ly) * nx + lx
-                    data[idx] = float(value)
-
-    return nx, ny, nz, data
-"#;
-
-            use std::ffi::CString;
-            let code_c = CString::new(code).unwrap();
-            let file_c = CString::new("embedded_vdb_loader.py").unwrap();
-            let name_c = CString::new("embedded_vdb_loader").unwrap();
-
-            let module = PyModule::from_code(
-                py,
-                code_c.as_c_str(),
-                file_c.as_c_str(),
-                name_c.as_c_str(),
-            )?;
-
-            let result = module
-                .getattr("load_dense")?
-                .call1((path, grid_name))?;
-
-            let (nx, ny, nz, density): (usize, usize, usize, Vec<f32>) = result.extract()?;
-
-            Ok((nx, ny, nz, density))
-        })
+        Ok((nx, ny, nz, density))
     }
 }
 
